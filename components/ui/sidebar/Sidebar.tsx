@@ -3,6 +3,7 @@ import { Box, Text } from 'ink';
 import { darkTheme } from '../_core.js';
 import type { InkUITheme } from '../_core.js';
 import { Divider } from '../divider/Divider.js';
+import { Select } from '../select/Select.js';
 
 export interface SidebarItem {
   id: string;
@@ -19,15 +20,18 @@ export interface SidebarProps {
   theme?: InkUITheme;
   width?: number;
   height?: number;
+  focus?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   items,
   selectedId,
+  onSelect,
   title = 'NAVEGACIÓN',
   theme = darkTheme,
   width = 20,
   height,
+  focus = false,
 }) => {
   return (
     <Box
@@ -46,28 +50,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       marginRight={1}
     >
       <Text bold color={theme.colors.muted}>{title}</Text>
-      <Box flexDirection="column" marginTop={1} gap={0}>
-        {items.map((item) => {
-          const isSelected = item.id === selectedId;
-          return (
-            <Box key={item.id} flexDirection="row" gap={1}>
-              <Text color={isSelected ? theme.colors.primary : theme.colors.muted}>
-                {isSelected ? '▸' : ' '}
-              </Text>
-              <Text
-                color={isSelected ? theme.colors.primary : theme.colors.text}
-                backgroundColor={isSelected ? theme.colors.selection : undefined}
-                bold={isSelected}
-              >
-                {item.icon ? `${item.icon} ` : ''}
-                {item.label}
-              </Text>
-              {item.badge && (
-                <Text color={theme.colors.muted}> ({item.badge})</Text>
-              )}
-            </Box>
-          );
-        })}
+      <Box marginTop={1}>
+        <Select
+          items={items.map((item) => ({
+            label: `${item.icon ? `${item.icon} ` : ''}${item.label}${item.badge ? ` (${item.badge})` : ''}`,
+            value: item.id,
+          }))}
+          value={selectedId}
+          onSelect={(item) => onSelect?.(String(item.value))}
+          focus={focus}
+          theme={theme}
+        />
       </Box>
 
       {/* empuja todo lo de abajo al fondo sin repartir el medio */}
