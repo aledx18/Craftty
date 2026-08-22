@@ -1,0 +1,22 @@
+{
+  "name": "mc-launcher",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/app.tsx"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "ink": "^7.1.1",
+    "ink-select-input": "^6.2.0",
+    "react": "^19.2.8"
+  }
+}
