@@ -1,43 +1,46 @@
 import { render, Box, Text, useInput, useApp, useWindowSize } from 'ink';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { setupTerminal, registerTerminalCleanup } from './terminal.js';
 import { Window } from '../components/ui/window/index.js';
 import { Sidebar } from '../components/ui/sidebar/index.js';
 import type { SidebarItem } from '../components/ui/sidebar/index.js';
 import { InstanceCard, InstanceGrid } from '../components/ui/instance-card/index.js';
 import { KeyHint } from '../components/ui/key-hint/index.js';
+import { AuthPanel } from '../components/ui/auth/index.js';
+import { useInstances } from './hooks/useInstances.js';
+import { useAccount } from './hooks/useAccount.js';
 
 setupTerminal('MC Launcher');
 registerTerminalCleanup();
 
-// ── Mock data tipo Prism ──────────────────────────────────
-const SIDEBAR_ITEMS: SidebarItem[] = [
-  { id: 'instances', label: 'Instancias', icon: '◧', badge: '6' },
-  { id: 'catalog', label: 'Catálogo', icon: '▦' },
-  { id: 'accounts', label: 'Cuentas', icon: '◐' },
-  { id: 'news', label: 'Noticias', icon: '✦' },
-  { id: 'settings', label: 'Ajustes', icon: '⚙' },
-];
-
-const INSTANCES = [
-  { id: 'skyfactory4', name: 'SkyFactory 4', version: '1.12.2', loader: 'forge', status: 'ready' as const, playTime: '42h' },
-  { id: 'atm9', name: 'All The Mods 9', version: '1.20.1', loader: 'forge', status: 'ready' as const, playTime: '128h' },
-  { id: 'vanilla121', name: 'Vanilla 1.21.1', version: '1.21.1', loader: 'vanilla', status: 'ready' as const, playTime: '12h' },
-  { id: 'fabulously', name: 'Fabulously Opti', version: '1.20.4', loader: 'fabric', status: 'playing' as const, playTime: '6h' },
-  { id: 'create-astral', name: 'Create: Astral', version: '1.19.2', loader: 'forge', status: 'updating' as const, playTime: '89h' },
-  { id: 'hardcore', name: 'Hardcore Test', version: '1.21.1', loader: 'quilt', status: 'error' as const, playTime: '2h' },
-];
+function useSidebarItems(instanceCount: number): SidebarItem[] {
+  return [
+    { id: 'instances', label: 'Instancias', icon: '◧', badge: String(instanceCount) },
+    { id: 'catalog', label: 'Catálogo', icon: '▦' },
+    { id: 'accounts', label: 'Cuentas', icon: '◐' },
+    { id: 'news', label: 'Noticias', icon: '✦' },
+    { id: 'settings', label: 'Ajustes', icon: '⚙' },
+  ];
+}
 
 function App() {
   const { exit } = useApp();
   const { columns, rows } = useWindowSize();
+  const { instances } = useInstances();
+  const { account, login, logout } = useAccount();
+  const SIDEBAR_ITEMS = useSidebarItems(instances.length);
   const [sidebarId, setSidebarId] = useState('instances');
   const [selectedIdx, setSelectedIdx] = useState(0);
-  const [focus, setFocus] = useState<'sidebar' | 'grid'>('grid');
+  const [focus, setFocus] = useState<'sidebar' | 'grid' | 'auth'>('grid');
 
   // Calcula columnas reales según ancho disponible (card 32 + gap 1)
   const cols = Math.max(1, Math.floor(Math.max(32, (columns || 80) - 26) / 33));
-  const count = INSTANCES.length;
+  const count = instances.length;
+
+  useEffect(() => {
+    if (count > 0 && selectedIdx >= count) setSelectedIdx(count - 1);
+    if (count === 0) setSelectedIdx(0);
+  }, [count, selectedIdx]);
 
   useInput((input, key) => {
     if (input === 'q' || (key.ctrl && input === 'c')) {
@@ -45,25 +48,27 @@ function App() {
       return;
     }
     if (key.tab) {
-      setFocus((f) => (f === 'grid' ? 'sidebar' : 'grid'));
+      setFocus((f) => (f === 'sidebar' ? 'grid' : f === 'grid' ? 'auth' : 'sidebar'));
       return;
     }
 
     if (focus === 'sidebar') {
-      if (key.upArrow) {
-        const idx = SIDEBAR_ITEMS.findIndex((i) => i.id === sidebarId);
-        const next = (idx - 1 + SIDEBAR_ITEMS.length) % SIDEBAR_ITEMS.length;
-        setSidebarId(SIDEBAR_ITEMS[next]!.id);
-      }
-      if (key.downArrow) {
-        const idx = SIDEBAR_ITEMS.findIndex((i) => i.id === sidebarId);
-        const next = (idx + 1) % SIDEBAR_ITEMS.length;
-        setSidebarId(SIDEBAR_ITEMS[next]!.id);
-      }
       if (key.return) {
-        setFocus('grid');
+        // Si está en Cuentas, Tab ya te lleva a auth, pero Enter también
+        if (sidebarId === 'accounts') setFocus('auth');
+        else setFocus('grid');
       }
+      return;
+    }
+
+    if (focus === 'auth') {
+      if (key.escape) {
+        setFocus('grid');
+        return;
+      }
+      return;
     } else {
+      if (count === 0) return;
       if (key.leftArrow) setSelectedIdx((i) => (i - 1 + count) % count);
       if (key.rightArrow) setSelectedIdx((i) => (i + 1) % count);
       if (key.upArrow) setSelectedIdx((i) => {
@@ -83,7 +88,8 @@ function App() {
     }
   });
 
-  const showGrid = sidebarId === 'instances';
+  const showGrid = sidebarId === 'instances' && focus !== 'auth';
+  const isAuthFocus = focus === 'auth';
 
   return (
     <Window
@@ -96,25 +102,40 @@ function App() {
             keys={
               focus === 'grid'
                 ? [
-                  { key: '←→', label: 'navegar' },
+                  { key: '←→↑↓', label: 'navegar' },
                   { key: 'Tab', label: 'cambiar panel' },
                   { key: '↵', label: 'jugar' },
                   { key: 'q', label: 'salir' },
                 ]
-                : [
-                  { key: '↑↓', label: 'navegar' },
-                  { key: 'Tab', label: 'cambiar panel' },
-                  { key: '↵', label: 'seleccionar' },
-                  { key: 'q', label: 'salir' },
-                ]
+                : focus === 'auth'
+                  ? [
+                    { key: 'Tab', label: 'cambiar panel' },
+                    { key: '↵', label: isAuthFocus && account ? 'logout' : 'login' },
+                    { key: 'Esc', label: 'volver' },
+                    { key: 'q', label: 'salir' },
+                  ]
+                  : [
+                    { key: '↑↓', label: 'navegar' },
+                    { key: 'Tab', label: 'cambiar panel' },
+                    { key: '↵', label: 'seleccionar' },
+                    { key: 'q', label: 'salir' },
+                  ]
             }
           />
-          <Text dimColor>{focus === 'grid' ? '● instancias' : '● navegación'}</Text>
+          <Text dimColor>{focus === 'grid' ? '● instancias' : focus === 'auth' ? '● auth' : '● navegación'}</Text>
         </Box>
       }
     >
       <Box flexDirection="row" flexGrow={1} gap={1}>
-        <Sidebar items={SIDEBAR_ITEMS} height={Math.max(12, rows - 4)} selectedId={sidebarId} title="Craftty" />
+        <Sidebar
+          items={SIDEBAR_ITEMS}
+          selectedId={sidebarId}
+          onSelect={setSidebarId}
+          title="PRISM"
+          focus={focus === 'sidebar'}
+          height={Math.max(12, rows - 4)}
+          account={account}
+        />
 
         {/* Main content */}
         <Box flexDirection="column" flexGrow={1} paddingX={1} gap={1}>
@@ -123,7 +144,7 @@ function App() {
               <Text bold color="white">
                 {SIDEBAR_ITEMS.find((i) => i.id === sidebarId)?.label ?? '—'}
               </Text>
-              {showGrid && <Text dimColor>· {INSTANCES.length} instancias</Text>}
+              {showGrid && <Text dimColor>· {instances.length} instancias</Text>}
             </Box>
             {showGrid && (
               <Box gap={2}>
@@ -137,22 +158,44 @@ function App() {
           {/* Separador */}
           <Box borderStyle="single" borderTop borderBottom={false} borderLeft={false} borderRight={false} />
 
-
-          {showGrid ? (
-            <InstanceGrid>
-              {INSTANCES.map((inst, idx) => (
-                <InstanceCard
-                  key={inst.id}
-                  name={inst.name}
-                  version={inst.version}
-                  loader={inst.loader}
-                  status={inst.status}
-                  playTime={inst.playTime}
-                  selected={idx === selectedIdx}
-                  focused={focus === 'grid' && idx === selectedIdx}
-                />
-              ))}
-            </InstanceGrid>
+          {isAuthFocus ? (
+            <AuthPanel
+              username={account?.username ?? ''}
+              isLoggedIn={!!account}
+              focus={focus === 'auth'}
+              onLogin={(username) => {
+                const uuid = crypto.randomUUID();
+                login({ username, uuid });
+                setFocus('grid');
+              }}
+              onLogout={() => {
+                logout();
+                setFocus('grid');
+              }}
+              onCancel={() => setFocus('grid')}
+            />
+          ) : showGrid ? (
+            instances.length === 0 ? (
+              <Box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={1}>
+                <Text dimColor>No hay instancias aún.</Text>
+                <Text color="cyan">Pulsa [+ Nueva] para crear una</Text>
+              </Box>
+            ) : (
+              <InstanceGrid>
+                {instances.map((inst, idx) => (
+                  <InstanceCard
+                    key={inst.id}
+                    name={inst.name}
+                    version={inst.version}
+                    loader={inst.loader}
+                    status={inst.status as any}
+                    playTime={inst.playTime}
+                    selected={idx === selectedIdx}
+                    focused={focus === 'grid' && idx === selectedIdx}
+                  />
+                ))}
+              </InstanceGrid>
+            )
           ) : (
             <Box flexDirection="column" gap={1} paddingY={2} alignItems="center" justifyContent="center" flexGrow={1}>
               <Text color="gray" bold>
@@ -165,10 +208,10 @@ function App() {
             </Box>
           )}
           <Box flexGrow={1} />
-          {showGrid && (
+          {showGrid && instances.length > 0 && (
             <Box borderStyle="single" borderColor='gray' borderTop borderBottom={false} borderLeft={false} borderRight={false} paddingTop={1} gap={2}>
               <Text dimColor>
-                Seleccionada: <Text color="white">{INSTANCES[selectedIdx]!.name}</Text> · {INSTANCES[selectedIdx]!.version} · {INSTANCES[selectedIdx]!.loader}
+                Seleccionada: <Text color="white">{instances[selectedIdx]?.name ?? '—'}</Text> · {instances[selectedIdx]?.version ?? ''} · {instances[selectedIdx]?.loader ?? ''}
               </Text>
             </Box>
           )}
