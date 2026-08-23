@@ -4,7 +4,13 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "bun run src/app.tsx"
+    "dev": "NODE_ENV=development bun run src/app.tsx",
+    "start": "NODE_ENV=production bun run src/app.tsx",
+    "storage:where": "bun -e \"import { getConfigDirPath } from './src/storage.ts'; console.log(getConfigDirPath())\"",
+    "storage:ls": "ls -R ~/.config/craftty* 2>&1 | head -n 50",
+    "storage:cat": "echo \"=== DEV (~/.config/craftty-dev) ===\" && cat ~/.config/craftty-dev/*.json 2>/dev/null | head -n 80; echo \"\"; echo \"=== PROD (~/.config/craftty) ===\" && cat ~/.config/craftty/*.json 2>/dev/null | head -n 80",
+    "storage:clear": "rm -rf ~/.config/craftty-dev && echo \"✓ craftty-dev limpiado\"",
+    "storage:clear:prod": "rm -rf ~/.config/craftty && echo \"✓ craftty limpiado\""
   },
   "devDependencies": {
     "@types/bun": "latest",
