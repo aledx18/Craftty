@@ -10,6 +10,7 @@ import { AuthPanel } from '../components/ui/auth/index.js';
 import { useInstances } from './hooks/useInstances.js';
 import { useAccount } from './hooks/useAccount.js';
 
+
 setupTerminal('MC Launcher');
 registerTerminalCleanup();
 
@@ -48,13 +49,23 @@ function App() {
       return;
     }
     if (key.tab) {
-      setFocus((f) => (f === 'sidebar' ? 'grid' : f === 'grid' ? 'auth' : 'sidebar'));
+      if (focus === 'auth') {
+        // Dejar que AuthPanel maneje Tab interno (input <-> Microsoft)
+        return;
+      }
+      // Si estás en Cuentas, Tab va directo al login
+      if (sidebarId === 'accounts') {
+        if (focus === 'sidebar') setFocus('auth');
+        else if (focus === 'grid') setFocus('auth');
+        else setFocus('sidebar');
+        return;
+      }
+      setFocus((f) => (f === 'sidebar' ? 'grid' : 'sidebar'));
       return;
     }
 
     if (focus === 'sidebar') {
       if (key.return) {
-        // Si está en Cuentas, Tab ya te lleva a auth, pero Enter también
         if (sidebarId === 'accounts') setFocus('auth');
         else setFocus('grid');
       }
@@ -63,7 +74,7 @@ function App() {
 
     if (focus === 'auth') {
       if (key.escape) {
-        setFocus('grid');
+        setFocus('sidebar');
         return;
       }
       return;
@@ -88,7 +99,8 @@ function App() {
     }
   });
 
-  const showGrid = sidebarId === 'instances' && focus !== 'auth';
+  const showAuth = sidebarId === 'accounts';
+  const showGrid = sidebarId === 'instances';
   const isAuthFocus = focus === 'auth';
 
   return (
@@ -158,7 +170,7 @@ function App() {
           {/* Separador */}
           <Box borderStyle="single" borderTop borderBottom={false} borderLeft={false} borderRight={false} />
 
-          {isAuthFocus ? (
+          {showAuth ? (
             <AuthPanel
               username={account?.username ?? ''}
               isLoggedIn={!!account}
@@ -166,13 +178,20 @@ function App() {
               onLogin={(username) => {
                 const uuid = crypto.randomUUID();
                 login({ username, uuid });
+                setSidebarId('instances');
+                setFocus('grid');
+              }}
+              onMicrosoftLogin={() => {
+                const username = 'MicrosoftUser';
+                login({ username, uuid: crypto.randomUUID() });
+                setSidebarId('instances');
                 setFocus('grid');
               }}
               onLogout={() => {
                 logout();
-                setFocus('grid');
+                setFocus('sidebar');
               }}
-              onCancel={() => setFocus('grid')}
+              onCancel={() => setFocus('sidebar')}
             />
           ) : showGrid ? (
             instances.length === 0 ? (

@@ -8,6 +8,7 @@ export interface AuthPanelProps {
   isLoggedIn?: boolean;
   focus?: boolean;
   onLogin?: (username: string) => void;
+  onMicrosoftLogin?: () => void;
   onLogout?: () => void;
   onCancel?: () => void;
   theme?: InkUITheme;
@@ -18,12 +19,13 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
   isLoggedIn = false,
   focus = false,
   onLogin,
+  onMicrosoftLogin,
   onLogout,
   onCancel,
   theme = darkTheme,
 }) => {
   const [input, setInput] = useState(username ?? '');
-  const [submitted, setSubmitted] = useState(false);
+  const [activeField, setActiveField] = useState<'input' | 'microsoft'>('input');
 
   useInput(
     (char, key) => {
@@ -33,22 +35,32 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
         onCancel?.();
         return;
       }
+      if (key.tab) {
+        setActiveField((prev) => (prev === 'input' ? 'microsoft' : 'input'));
+        return;
+      }
       if (key.return) {
         if (isLoggedIn) {
           onLogout?.();
-        } else if (input.trim().length >= 3) {
-          setSubmitted(true);
+          return;
+        }
+        if (activeField === 'microsoft') {
+          onMicrosoftLogin?.();
+          return;
+        }
+        if (input.trim().length >= 3) {
           onLogin?.(input.trim());
         }
         return;
       }
+      // Cuando el foco está en el botón de Microsoft, no escribir
+      if (activeField === 'microsoft') return;
+
       if (key.backspace || key.delete) {
         setInput((prev) => prev.slice(0, -1));
         return;
       }
-      // Ctrl+C ya lo maneja App
       if (key.ctrl || key.meta) return;
-      // Solo caracteres imprimibles, max 16 como Minecraft
       if (char && char.length === 1 && input.length < 16 && /^[a-zA-Z0-9_]$/.test(char)) {
         setInput((prev) => prev + char);
       }
@@ -71,44 +83,57 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
             </Text>
           </Box>
         </Box>
-        <Text dimColor>Modo Auth — Tab para volver a navegación/grid</Text>
+        <Text dimColor>Tab para volver</Text>
       </Box>
     );
   }
 
   const isValid = input.trim().length >= 3;
+  const inputFocused = focus && activeField === 'input';
+  const msFocused = focus && activeField === 'microsoft';
 
   return (
     <Box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={1}>
-      <Box borderStyle="round" borderColor={focus ? theme.colors.focus : theme.colors.border} paddingX={3} paddingY={1} flexDirection="column" gap={1} width={40}>
+      <Box borderStyle="round" borderColor={focus ? theme.colors.focus : theme.colors.border} paddingX={3} paddingY={1} flexDirection="column" gap={1} width={50}>
         <Text bold color={theme.colors.primary}>◐ Iniciar sesión</Text>
-        <Text color={theme.colors.muted}>Usuario offline (3-16 caracteres, a-z, 0-9, _)</Text>
+        <Text color={theme.colors.muted}>Elegí cómo entrar — offline o Microsoft</Text>
 
-        <Box marginTop={1} flexDirection="column" gap={1}>
-          <Text color={theme.colors.muted}>Usuario:</Text>
-          <Box borderStyle="single" borderColor={focus ? theme.colors.focus : theme.colors.border} paddingX={1}>
-            <Text color={theme.colors.text}>{input}</Text>
-            {focus && <Text color={theme.colors.focus}>█</Text>}
-            {!focus && input.length === 0 && <Text dimColor>ej: AledEv</Text>}
-          </Box>
-          {!isValid && input.length > 0 && (
-            <Text color="yellow">Mínimo 3 caracteres</Text>
-          )}
-        </Box>
-
-        <Box marginTop={1} gap={1} justifyContent="center">
-          <Box borderStyle="round" borderColor={isValid && focus ? 'green' : 'gray'} paddingX={1}>
-            <Text color={isValid && focus ? 'green' : 'gray'} bold={isValid && focus}>
-              {focus ? '↵ Entrar' : 'Tab para enfocar'}
+        {/* Offline */}
+        <Box marginTop={1} flexDirection="column" gap={1} borderStyle="single" borderColor={inputFocused ? theme.colors.focus : theme.colors.border} paddingX={1} paddingY={1}>
+          <Text color={inputFocused ? theme.colors.focus : theme.colors.muted} bold={inputFocused}>■ Offline — solo nombre</Text>
+          <Text color={theme.colors.muted}>Usuario (3-16, a-z, 0-9, _):</Text>
+          <Box borderStyle="single" borderColor={inputFocused ? theme.colors.focus : theme.colors.border} paddingX={1}>
+            <Text>
+              <Text color={input.length === 0 ? 'gray' : theme.colors.text} dimColor={input.length === 0}>
+                {(input.length === 0 ? 'ej: AledEv' : input).padEnd(16, ' ')}
+              </Text>
+              <Text color={inputFocused ? theme.colors.focus : 'gray'}>{inputFocused ? '█' : ' '}</Text>
             </Text>
           </Box>
-          <Box borderStyle="round" borderColor="gray" paddingX={1}>
-            <Text dimColor>Esc Volver</Text>
+          {!isValid && input.length > 0 && <Text color="yellow">Mínimo 3 caracteres</Text>}
+          <Box marginTop={1} width={20} justifyContent="center">
+            <Text color={isValid && inputFocused ? 'green' : 'gray'} bold={isValid && inputFocused} backgroundColor={isValid && inputFocused ? 'green' : undefined}>
+              {inputFocused ? ' ► Entrar offline ' : '   Entrar offline '}
+            </Text>
+          </Box>
+        </Box>
+
+        <Box justifyContent="center">
+          <Text dimColor>── o ──</Text>
+        </Box>
+
+        {/* Microsoft */}
+        <Box borderStyle="single" borderColor={msFocused ? theme.colors.focus : theme.colors.border} paddingX={1} paddingY={1} flexDirection="column" alignItems="center" gap={1}>
+          <Text color={msFocused ? theme.colors.focus : theme.colors.muted} bold={msFocused}>⬡ Online — Microsoft</Text>
+          <Text color={theme.colors.muted} dimColor>Usa tu cuenta de Minecraft</Text>
+          <Box marginTop={1} width={24} justifyContent="center">
+            <Text color={msFocused ? 'black' : 'cyan'} bold={msFocused} backgroundColor={msFocused ? 'cyan' : undefined}>
+              {msFocused ? ' ► Login con Microsoft ' : '   Login con Microsoft '}
+            </Text>
           </Box>
         </Box>
       </Box>
-      <Text dimColor>Modo Auth — escribe tu nombre y pulsa Enter</Text>
-      {submitted && <Text color="green">¡Bienvenido, {input}!</Text>}
+      <Text dimColor>{focus ? 'Tab para cambiar · Enter para confirmar · Esc Volver' : 'Tab para enfocar el login'}</Text>
     </Box>
   );
 };
