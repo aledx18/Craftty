@@ -16,10 +16,7 @@ function getConfigDir(): string {
 }
 
 function ensureConfigDir(): void {
-  const dir = getConfigDir();
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+  fs.mkdirSync(getConfigDir(), { recursive: true });
 }
 
 function getFilePath(fileName: string): string {
@@ -68,12 +65,21 @@ function writeJSON<T>(fileName: string, data: T): void {
 
 export type InstanceLoader = 'vanilla' | 'fabric' | 'forge' | 'quilt' | 'neoforge';
 export type InstanceStatus = 'ready' | 'playing' | 'updating' | 'error';
+export type JavaVersion = '8' | '11' | '17' | '21';
+
+export const JAVA_VERSIONS: { value: JavaVersion; label: string }[] = [
+  { value: '8', label: 'Java 8 (1.12 y anteriores)' },
+  { value: '11', label: 'Java 11' },
+  { value: '17', label: 'Java 17 (1.17 - 1.20.4)' },
+  { value: '21', label: 'Java 21 (1.20.5+)' },
+];
 
 export interface Instance {
   id: string;
   name: string;
   version: string;
   loader: InstanceLoader;
+  javaVersion?: JavaVersion;
   folder: string;
   playTime?: string;
   status?: InstanceStatus;
