@@ -10,6 +10,7 @@ export interface InstanceCardProps {
   name: string;
   version: string;
   loader?: string; // vanilla, fabric, forge, quilt
+  javaVersion?: string;
   status?: InstanceStatus;
   playTime?: string;
   selected?: boolean;
@@ -41,6 +42,7 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({
   name,
   version,
   loader = 'vanilla',
+  javaVersion,
   status = 'ready',
   playTime,
   selected = false,
@@ -69,11 +71,17 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({
         </Text>
       </Box>
 
-      {/* Versión + loader */}
+      {/* Versión + loader + Java */}
       <Box gap={1} marginTop={0}>
         <Text color={theme.colors.muted}>{version}</Text>
         <Text dimColor>·</Text>
         <Text color={theme.colors.muted}>{loader}</Text>
+        {javaVersion && (
+          <>
+            <Text dimColor>·</Text>
+            <Text color={theme.colors.muted}>Java {javaVersion}</Text>
+          </>
+        )}
       </Box>
 
       {/* Footer: badge estado + tiempo */}
