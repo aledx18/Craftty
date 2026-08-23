@@ -4,6 +4,7 @@ import { darkTheme } from '../_core.js';
 import type { InkUITheme } from '../_core.js';
 import { JAVA_VERSIONS } from '../../../src/storage.js';
 import type { JavaVersion } from '../../../src/storage.js';
+import { getInstancesDir } from '../../../src/instanceFiles.js';
 import { Select } from '../select/index.js';
 
 export interface AddInstanceModalProps {
@@ -36,11 +37,8 @@ export const AddInstanceModal: React.FC<AddInstanceModalProps> = ({
       if (key.escape) { onCancel(); return; }
       if (key.tab) { setActiveField(p => p === 'name' ? 'java' : 'name'); return; }
       if (key.return && isNameValid) { onConfirm({ name: name.trim(), javaVersion }); return; }
-      if (activeField === 'java') {
-        if (key.upArrow) setJavaIdx(i => (i - 1 + JAVA_VERSIONS.length) % JAVA_VERSIONS.length);
-        if (key.downArrow) setJavaIdx(i => (i + 1) % JAVA_VERSIONS.length);
-        return;
-      }
+      // Java lo maneja Select como única fuente de verdad (value + onSelect)
+      if (activeField === 'java') return;
       if (key.backspace || key.delete) { setName(p => p.slice(0, -1)); return; }
       if (key.ctrl || key.meta) return;
       if (char && name.length < 32 && /^[a-zA-Z0-9 _-]$/.test(char)) setName(p => p + char);
@@ -85,7 +83,7 @@ export const AddInstanceModal: React.FC<AddInstanceModalProps> = ({
           <Text dimColor>Tab Cambiar · Esc Cancelar</Text>
         </Box>
       </Box>
-      <Box marginTop={1}><Text dimColor>Se creará en ~/.local/share/craftty{process.env.NODE_ENV !== 'production' ? '-dev' : ''}/instances/&lt;id&gt;</Text></Box>
+      <Box marginTop={1}><Text dimColor>Se creará en {getInstancesDir()}/&lt;id&gt;</Text></Box>
     </Box>
   );
 };
