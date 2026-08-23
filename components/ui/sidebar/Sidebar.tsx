@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, Text } from 'ink';
 import { darkTheme } from '../_core.js';
 import type { InkUITheme } from '../_core.js';
-import { Divider } from '../divider/Divider.js';
 import { Select } from '../select/Select.js';
 
 export interface SidebarItem {
@@ -21,6 +20,7 @@ export interface SidebarProps {
   width?: number;
   height?: number;
   focus?: boolean;
+  account?: { username: string } | null;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -32,6 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   width = 20,
   height,
   focus = false,
+  account = null,
 }) => {
   return (
     <Box
@@ -63,13 +64,47 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       </Box>
 
-      {/* empuja todo lo de abajo al fondo sin repartir el medio */}
       <Box flexGrow={1} />
 
-      <Box borderStyle="single" borderColor={'gray'} borderTop borderBottom={false} borderLeft={false} borderRight={false} paddingBottom={1} paddingTop={1} gap={1}>
-        <Text color="green">●</Text>
-        <Text color={theme.colors.text}>AledEv</Text>
-        <Text color={theme.colors.muted}>online</Text>
+      <Box
+        borderStyle="single"
+        borderColor={selectedId === 'accounts' ? theme.colors.focus : 'gray'}
+        borderTop
+        borderBottom={false}
+        borderLeft={false}
+        borderRight={false}
+        paddingTop={1}
+        flexDirection="row"
+        gap={1}
+        alignItems="center"
+      >
+        <Box
+          width={5}
+          height={3}
+          justifyContent="center"
+          alignItems="center"
+          flexShrink={0}
+          borderStyle="round"
+          borderColor={selectedId === 'accounts' ? theme.colors.focus : account ? 'green' : 'gray'}
+        >
+          <Text color={selectedId === 'accounts' ? theme.colors.focus : account ? 'green' : 'gray'}>{account ? '◐' : '?'}</Text>
+        </Box>
+        <Box flexDirection="column" flexGrow={1} overflow="hidden">
+          {account ? (
+            <>
+              <Text color={selectedId === 'accounts' ? theme.colors.focus : theme.colors.text} bold wrap="truncate-end">{account.username}</Text>
+              <Box gap={1}>
+                <Text color="green">●</Text>
+                <Text color={theme.colors.muted}>online</Text>
+              </Box>
+            </>
+          ) : (
+            <>
+              <Text color={selectedId === 'accounts' ? theme.colors.focus : theme.colors.muted} bold={selectedId === 'accounts'} wrap="truncate">No conectado</Text>
+              <Text dimColor>offline</Text>
+            </>
+          )}
+        </Box>
       </Box>
     </Box>
   );
