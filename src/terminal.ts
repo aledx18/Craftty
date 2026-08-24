@@ -4,9 +4,6 @@
  * en orden inverso.
  */
 
-import { useStdout } from "ink";
-import { useEffect, useState } from "react";
-
 const ANSI = {
   altScreenEnter: '\x1b[?1049h',
   altScreenExit: '\x1b[?1049l',
