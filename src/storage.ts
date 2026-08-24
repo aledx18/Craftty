@@ -12,7 +12,8 @@ const APP_NAME = 'craftty';
 function getConfigDir(): string {
   const isDev = process.env.NODE_ENV !== 'production';
   const folderName = isDev ? `${APP_NAME}-dev` : APP_NAME;
-  return path.join(os.homedir(), '.config', folderName);
+  const base = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
+  return path.join(base, folderName);
 }
 
 function ensureConfigDir(): void {
