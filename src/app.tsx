@@ -49,7 +49,6 @@ function App() {
 
   useInput((input, key) => {
     if (focus === 'confirm') {
-      // Deja que Confirm maneje Esc/Enter/Tab/y/n
       if (key.escape) {
         setPendingDelete(null);
         setFocus('grid');
@@ -57,8 +56,12 @@ function App() {
       }
       return;
     }
-    if (focus === 'add') {
-      if (key.escape) {
+    if (focus === 'add' || focus === 'auth') {
+      if (focus === 'auth' && key.escape) {
+        setFocus('sidebar');
+        return;
+      }
+      if (focus === 'add' && key.escape) {
         setFocus('grid');
         return;
       }
@@ -74,9 +77,6 @@ function App() {
       return;
     }
     if (key.tab) {
-      if (focus === 'auth') {
-        return;
-      }
       if (sidebarId === 'accounts') {
         if (focus === 'sidebar') setFocus('auth');
         else if (focus === 'grid') setFocus('auth');
@@ -95,45 +95,36 @@ function App() {
       return;
     }
 
-    if (focus === 'auth') {
-      if (key.escape) {
-        setFocus('sidebar');
+    if (count === 0) return;
+    // Borrar instancia — destructivo, pide confirmación
+    if ((input === 'd' || input === 'D' || key.delete || key.backspace) && count > 0) {
+      const target = instances[selectedIdx];
+      if (target) {
+        setPendingDelete(target.id);
+        setFocus('confirm');
         return;
       }
-      return;
-    } else {
-      if (count === 0) return;
-      // Borrar instancia — destructivo, pide confirmación
-      if ((input === 'd' || input === 'D' || key.delete || key.backspace) && count > 0) {
-        const target = instances[selectedIdx];
-        if (target) {
-          setPendingDelete(target.id);
-          setFocus('confirm');
-          return;
-        }
-      }
-      if (key.leftArrow) setSelectedIdx((i) => (i - 1 + count) % count);
-      if (key.rightArrow) setSelectedIdx((i) => (i + 1) % count);
-      if (key.upArrow) setSelectedIdx((i) => {
-        const next = i - cols;
-        if (next < 0) {
-          const lastRowStart = Math.floor((count - 1) / cols) * cols;
-          const col = i % cols;
-          const candidate = lastRowStart + col;
-          return candidate < count ? candidate : lastRowStart;
-        }
-        return next;
-      });
-      if (key.downArrow) setSelectedIdx((i) => {
-        const next = i + cols;
-        return next >= count ? next % cols : next;
-      });
     }
+    if (key.leftArrow) setSelectedIdx((i) => (i - 1 + count) % count);
+    if (key.rightArrow) setSelectedIdx((i) => (i + 1) % count);
+    if (key.upArrow) setSelectedIdx((i) => {
+      const next = i - cols;
+      if (next < 0) {
+        const lastRowStart = Math.floor((count - 1) / cols) * cols;
+        const col = i % cols;
+        const candidate = lastRowStart + col;
+        return candidate < count ? candidate : lastRowStart;
+      }
+      return next;
+    });
+    if (key.downArrow) setSelectedIdx((i) => {
+      const next = i + cols;
+      return next >= count ? next % cols : next;
+    });
   });
 
   const showAuth = sidebarId === 'accounts';
   const showGrid = sidebarId === 'instances';
-  const isAuthFocus = focus === 'auth';
   const showAddModal = focus === 'add';
 
   return (
@@ -261,7 +252,6 @@ function App() {
                 });
                 setFocus('grid');
               }}
-              onCancel={() => setFocus('grid')}
             />
           ) : showAuth ? (
             <AuthPanel
@@ -284,7 +274,6 @@ function App() {
                 logout();
                 setFocus('sidebar');
               }}
-              onCancel={() => setFocus('sidebar')}
             />
           ) : showGrid ? (
             instances.length === 0 ? (

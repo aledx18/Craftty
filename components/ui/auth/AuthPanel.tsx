@@ -10,7 +10,6 @@ export interface AuthPanelProps {
   onLogin?: (username: string) => void;
   onMicrosoftLogin?: () => void;
   onLogout?: () => void;
-  onCancel?: () => void;
   theme?: InkUITheme;
 }
 
@@ -21,7 +20,6 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
   onLogin,
   onMicrosoftLogin,
   onLogout,
-  onCancel,
   theme = darkTheme,
 }) => {
   const [input, setInput] = useState(username ?? '');
@@ -30,11 +28,7 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
   useInput(
     (char, key) => {
       if (!focus) return;
-
-      if (key.escape) {
-        onCancel?.();
-        return;
-      }
+      // Esc lo maneja App (global)
       if (key.tab) {
         setActiveField((prev) => (prev === 'input' ? 'microsoft' : 'input'));
         return;

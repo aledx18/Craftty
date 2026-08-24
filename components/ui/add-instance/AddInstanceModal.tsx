@@ -11,7 +11,6 @@ export interface AddInstanceModalProps {
   focus?: boolean;
   existingNames?: string[];
   onConfirm: (data: { name: string; javaVersion: JavaVersion }) => void;
-  onCancel: () => void;
   theme?: InkUITheme;
 }
 
@@ -19,7 +18,6 @@ export const AddInstanceModal: React.FC<AddInstanceModalProps> = ({
   focus = false,
   existingNames = [],
   onConfirm,
-  onCancel,
   theme = darkTheme,
 }) => {
   const [name, setName] = useState('');
@@ -34,11 +32,11 @@ export const AddInstanceModal: React.FC<AddInstanceModalProps> = ({
   useInput(
     (char, key) => {
       if (!focus) return;
-      if (key.escape) { onCancel(); return; }
+      // Esc y Tab los maneja App (global)
       if (key.tab) { setActiveField(p => p === 'name' ? 'java' : 'name'); return; }
-      if (key.return && isNameValid) { onConfirm({ name: name.trim(), javaVersion }); return; }
-      // Java lo maneja Select como única fuente de verdad (value + onSelect)
+      // Java field: solo Select maneja flechas/Enter, no procesamos nada acá
       if (activeField === 'java') return;
+      if (key.return && isNameValid) { onConfirm({ name: name.trim(), javaVersion }); return; }
       if (key.backspace || key.delete) { setName(p => p.slice(0, -1)); return; }
       if (key.ctrl || key.meta) return;
       if (char && name.length < 32 && /^[a-zA-Z0-9 _-]$/.test(char)) setName(p => p + char);
