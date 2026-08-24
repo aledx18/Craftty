@@ -19,11 +19,10 @@ registerTerminalCleanup();
 
 function useSidebarItems(instanceCount: number): SidebarItem[] {
   return [
-    { id: 'instances', label: 'Instancias', icon: '◧', badge: String(instanceCount) },
-    { id: 'catalog', label: 'Catálogo', icon: '▦' },
-    { id: 'accounts', label: 'Cuentas', icon: '◐' },
-    { id: 'news', label: 'Noticias', icon: '✦' },
-    { id: 'settings', label: 'Ajustes', icon: '⚙' },
+    { id: 'instances', label: 'Instances', icon: '◧', badge: String(instanceCount) },
+    { id: 'accounts', label: 'Accounts', icon: '◐' },
+    { id: 'news', label: 'News', icon: '✦' },
+    { id: 'settings', label: 'Settings', icon: '⚙' },
   ];
 }
 
@@ -38,7 +37,7 @@ function App() {
   const [focus, setFocus] = useState<'sidebar' | 'grid' | 'auth' | 'add' | 'confirm'>('grid');
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
-  // Calcula columnas reales según ancho disponible (card 32 + gap 1)
+  // Calculate actual columns based on available width (card 32 + gap 1)
   const cols = Math.max(1, Math.floor(Math.max(32, (columns || 80) - 26) / 33));
   const count = instances.length;
 
@@ -67,11 +66,11 @@ function App() {
       }
       return;
     }
-    if (input === 'q' || (key.ctrl && input === 'c')) {
+    if (input === 'q') {
       exit();
       return;
     }
-    // [+ Nueva] con n
+    // [+ New] with n
     if (focus === 'grid' && showGrid && (input === 'n' || input === 'N')) {
       setFocus('add');
       return;
@@ -96,7 +95,7 @@ function App() {
     }
 
     if (count === 0) return;
-    // Borrar instancia — destructivo, pide confirmación
+    // Delete instance — destructive, requires confirmation
     if ((input === 'd' || input === 'D' || key.delete || key.backspace) && count > 0) {
       const target = instances[selectedIdx];
       if (target) {
@@ -138,41 +137,42 @@ function App() {
             keys={
               focus === 'confirm'
                 ? [
-                  { key: 'Tab', label: 'cambiar' },
-                  { key: '↵', label: 'confirmar' },
-                  { key: 'Esc', label: 'cancelar' },
+                  { key: 'Tab', label: 'switch' },
+                  { key: '↵', label: 'confirm' },
+                  { key: 'Esc', label: 'cancel' },
                   { key: 'y/n', label: '' },
                 ]
                 : focus === 'add'
                   ? [
-                    { key: 'Tab', label: 'cambiar campo' },
-                    { key: '↵', label: 'crear' },
-                    { key: 'Esc', label: 'cancelar' },
+                    { key: 'Tab', label: 'switch field' },
+                    { key: '↵', label: 'create' },
+                    { key: 'Esc', label: 'cancel' },
                   ]
                   : focus === 'grid'
-                  ? [
-                    { key: '←→↑↓', label: 'navegar' },
-                    { key: 'n', label: 'nueva' },
-                    { key: 'Tab', label: 'cambiar panel' },
-                    { key: '↵', label: 'jugar' },
-                    { key: 'q', label: 'salir' },
-                  ]
-                  : focus === 'auth'
                     ? [
-                      { key: 'Tab', label: 'cambiar' },
-                      { key: '↵', label: account ? 'logout' : 'login' },
-                      { key: 'Esc', label: 'volver' },
-                      { key: 'q', label: 'salir' },
+                      { key: '←→↑↓', label: 'navigate' },
+                      { key: 'n', label: 'new' },
+                      { key: 'd', label: 'delete' },
+                      { key: 'Tab', label: 'switch panel' },
+                      { key: '↵', label: 'play' },
+                      { key: 'q', label: 'quit' },
                     ]
-                    : [
-                      { key: '↑↓', label: 'navegar' },
-                      { key: 'Tab', label: 'cambiar panel' },
-                      { key: '↵', label: 'seleccionar' },
-                      { key: 'q', label: 'salir' },
-                    ]
+                    : focus === 'auth'
+                      ? [
+                        { key: 'Tab', label: 'switch' },
+                        { key: '↵', label: account ? 'logout' : 'login' },
+                        { key: 'Esc', label: 'back' },
+                        { key: 'q', label: 'quit' },
+                      ]
+                      : [
+                        { key: '↑↓', label: 'navigate' },
+                        { key: 'Tab', label: 'switch panel' },
+                        { key: '↵', label: 'select' },
+                        { key: 'q', label: 'quit' },
+                      ]
             }
           />
-          <Text dimColor>{focus === 'grid' ? '● instancias' : focus === 'auth' ? '● auth' : focus === 'add' ? '● nueva instancia' : focus === 'confirm' ? '● borrar' : '● navegación'}</Text>
+          <Text dimColor>{focus === 'grid' ? '● instances' : focus === 'auth' ? '● auth' : focus === 'add' ? '● new instance' : focus === 'confirm' ? '● delete' : '● navigation'}</Text>
         </Box>
       }
     >
@@ -194,18 +194,18 @@ function App() {
               <Text bold color="white">
                 {SIDEBAR_ITEMS.find((i) => i.id === sidebarId)?.label ?? '—'}
               </Text>
-              {showGrid && <Text dimColor>· {instances.length} instancias</Text>}
+              {showGrid && <Text dimColor>· {instances.length} instances</Text>}
             </Box>
             {showGrid && (
               <Box gap={2}>
-                <Text dimColor>⌕ buscar</Text>
-                <Text dimColor>⇅ nombre</Text>
-                <Text color="cyan">[+ Nueva N]</Text>
+                <Text dimColor>⌕ search</Text>
+                <Text dimColor>⇅ name</Text>
+                <Text color="cyan">[+ New N]</Text>
               </Box>
             )}
           </Box>
 
-          {/* Separador */}
+          {/* Separator */}
           <Box borderStyle="single" borderTop borderBottom={false} borderLeft={false} borderRight={false} />
 
           {pendingDelete && focus === 'confirm' ? (
@@ -213,16 +213,16 @@ function App() {
               const target = instances.find((i) => i.id === pendingDelete);
               return (
                 <Confirm
-                  title="Borrar instancia"
-                  message={`¿Borrar "${target?.name ?? pendingDelete}"?`}
-                  detail="Se borrará la carpeta completa en ~/.local/share/craftty[-dev]/instances/<id> — incluye mundos, mods y configs. Esta acción no se puede deshacer."
-                  confirmLabel="Sí, borrar todo"
-                  cancelLabel="Cancelar"
+                  title="Delete instance"
+                  message={`Delete "${target?.name ?? pendingDelete}"?`}
+                  detail="The entire folder at ~/.local/share/craftty[-dev]/instances/<id> will be removed — including worlds, mods and configs. This action cannot be undone."
+                  confirmLabel="Yes, delete everything"
+                  cancelLabel="Cancel"
                   focus={true}
                   onConfirm={() => {
                     try {
                       removeInstance(pendingDelete);
-                    } catch {}
+                    } catch { }
                     setPendingDelete(null);
                     setFocus('grid');
                   }}
@@ -278,8 +278,8 @@ function App() {
           ) : showGrid ? (
             instances.length === 0 ? (
               <Box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={1}>
-                <Text dimColor>No hay instancias aún.</Text>
-                <Text color="cyan">Pulsa [+ Nueva] para crear una</Text>
+                <Text dimColor>No instances yet.</Text>
+                <Text color="cyan">Press [+ New] to create one</Text>
               </Box>
             ) : (
               <InstanceGrid>
@@ -303,9 +303,9 @@ function App() {
               <Text color="gray" bold>
                 ◈ {SIDEBAR_ITEMS.find((i) => i.id === sidebarId)?.label}
               </Text>
-              <Text dimColor>Esta sección está en construcción — viene pronto.</Text>
+              <Text dimColor>This section is under construction — coming soon.</Text>
               <Box marginTop={1} borderStyle="round" borderColor="gray" paddingX={2}>
-                <Text dimColor>Tab para volver a instancias</Text>
+                <Text dimColor>Tab to go back to instances</Text>
               </Box>
             </Box>
           )}
@@ -313,7 +313,7 @@ function App() {
           {showGrid && instances.length > 0 && (
             <Box borderStyle="single" borderColor='gray' borderTop borderBottom={false} borderLeft={false} borderRight={false} paddingTop={1} gap={2}>
               <Text dimColor>
-                Seleccionada: <Text color="white">{instances[selectedIdx]?.name ?? '—'}</Text> · {instances[selectedIdx]?.version ?? ''} · {instances[selectedIdx]?.loader ?? ''}
+                Selected: <Text color="white">{instances[selectedIdx]?.name ?? '—'}</Text> · {instances[selectedIdx]?.version ?? ''} · {instances[selectedIdx]?.loader ?? ''}
               </Text>
             </Box>
           )}
@@ -327,4 +327,4 @@ const app = render(<App />, {
   exitOnCtrlC: false,
 });
 await app.waitUntilExit();
-console.log('Listo, ¡gracias por usar MC Launcher!');
+console.log('Done, thanks for using MC Launcher!');

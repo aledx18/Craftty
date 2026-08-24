@@ -26,7 +26,7 @@ export function useInstances() {
   const [instances, setInstances] = useState<Instance[]>(() => {
     const loaded = (loadInstances() as unknown as LegacyInstance[]).map(
       (inst): Instance => {
-        // Migración: folder relativo -> absoluto + ensure folder exists
+        // Migration: relative folder -> absolute + ensure folder exists
         const absFolder = inst.folder.startsWith('/') ? inst.folder : `${getInstancesDir()}/${inst.folder}`;
         try { fs.mkdirSync(absFolder, { recursive: true }); } catch {}
         return {
@@ -53,7 +53,7 @@ export function useInstances() {
     setInstances((prev) => {
       const normalized = inst.name.trim().toLowerCase();
       if (prev.some((p) => p.name.trim().toLowerCase() === normalized)) {
-        throw new Error(`Ya existe una instancia con el nombre "${inst.name}"`);
+        throw new Error(`An instance with the name "${inst.name}" already exists`);
       }
       const next = [...prev, inst];
       saveInstances(next);
@@ -62,10 +62,10 @@ export function useInstances() {
   }, []);
 
   const removeInstance = useCallback((id: string) => {
-    // Orden crítico: disco primero, estado después.
-    // Si el rm falla (permisos, archivo en uso), lanzamos y NO tocamos el índice.
-    // Mejor dejar la instancia huérfana pero visible y reintentable,
-    // que borrarla del JSON y perder la referencia a una carpeta que sigue ocupando GB.
+    // Critical order: disk first, state second.
+    // If rm fails (permissions, file in use), we throw and do NOT touch the index.
+    // Better to leave the orphaned instance visible and retryable,
+    // than to delete it from JSON and lose the reference to a folder still taking up GB.
     removeInstanceFolder(id);
 
     setInstances((prev) => {

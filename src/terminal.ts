@@ -1,7 +1,7 @@
 /**
- * Control de estado de la terminal a bajo nivel (códigos ANSI).
- * Todo lo que se activa en setupTerminal() se revierte en restoreTerminal(),
- * en orden inverso.
+ * Low-level terminal state control (ANSI codes).
+ * Everything activated in setupTerminal() is reverted in restoreTerminal(),
+ * in reverse order.
  */
 
 const ANSI = {
@@ -23,7 +23,7 @@ export function setupTerminal(title = 'MC Launcher') {
 }
 
 export function restoreTerminal() {
-  if (restored) return; // evita escribir dos veces si se llama por varias vías (SIGINT + exit)
+  if (restored) return; // prevents double-write if called from multiple paths (SIGINT + exit)
   restored = true;
 
   process.stdout.write(ANSI.bracketedPasteExit);
@@ -33,10 +33,9 @@ export function restoreTerminal() {
 
 export function registerTerminalCleanup() {
   process.on('exit', restoreTerminal);
-  process.on('SIGINT', () => {
-    restoreTerminal();
-    process.exit(0);
-  });
+  // SIGINT: ignore — only 'q' closes the app.
+  // restoreTerminal() runs on 'exit' when the app closes normally.
+  process.on('SIGINT', () => {});
   process.on('SIGTERM', () => {
     restoreTerminal();
     process.exit(0);

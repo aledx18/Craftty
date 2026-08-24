@@ -33,7 +33,7 @@ export const Window: React.FC<WindowProps> = ({
       width={width}
       height={height}
     >
-      {/* Título incrustado en el borde superior — truco marginTop -1 */}
+      {/* Title embedded in top border — marginTop -1 trick */}
       <Box marginTop={-1} marginLeft={2} paddingX={1} alignSelf="flex-start">
         <Text bold color={theme.colors.primary}>
           {' '}
@@ -44,12 +44,12 @@ export const Window: React.FC<WindowProps> = ({
         )}
       </Box>
 
-      {/* Contenido principal — ocupa todo el espacio disponible */}
+      {/* Main content — fills all available space */}
       <Box flexGrow={1} flexDirection="column" paddingX={1} paddingBottom={1} overflow="hidden">
         {children}
       </Box>
 
-      {/* Footer / barra de estado inferior */}
+      {/* Footer / bottom status bar */}
       {footer && (
         <Box
           borderStyle="single"

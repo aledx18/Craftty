@@ -19,8 +19,8 @@ export const Confirm: React.FC<ConfirmProps> = ({
   title,
   message,
   detail,
-  confirmLabel = 'Borrar',
-  cancelLabel = 'Cancelar',
+  confirmLabel = 'Delete',
+  cancelLabel = 'Cancel',
   focus = false,
   onConfirm,
   onCancel,
@@ -66,7 +66,7 @@ export const Confirm: React.FC<ConfirmProps> = ({
           </Box>
         </Box>
       </Box>
-      <Text dimColor>Tab para cambiar · Enter para confirmar · Esc para cancelar · y/n</Text>
+      <Text dimColor>Tab to switch · Enter to confirm · Esc to cancel · y/n</Text>
     </Box>
   );
 };

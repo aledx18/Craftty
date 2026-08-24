@@ -28,7 +28,7 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
   useInput(
     (char, key) => {
       if (!focus) return;
-      // Esc lo maneja App (global)
+      // Esc is handled by App (global)
       if (key.tab) {
         setActiveField((prev) => (prev === 'input' ? 'microsoft' : 'input'));
         return;
@@ -47,7 +47,7 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
         }
         return;
       }
-      // Cuando el foco está en el botón de Microsoft, no escribir
+      // When focus is on the Microsoft button, don't type
       if (activeField === 'microsoft') return;
 
       if (key.backspace || key.delete) {
@@ -66,18 +66,18 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
     return (
       <Box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={1}>
         <Box borderStyle="round" borderColor={theme.colors.success} paddingX={2} paddingY={1} flexDirection="column" alignItems="center" gap={1}>
-          <Text bold color={theme.colors.success}>● Sesión iniciada</Text>
+          <Text bold color={theme.colors.success}>● Logged in</Text>
           <Box gap={1}>
             <Text color={theme.colors.text} bold>{username}</Text>
             <Text color={theme.colors.muted}>online</Text>
           </Box>
           <Box marginTop={1} borderStyle="round" borderColor={focus ? theme.colors.focus : theme.colors.border} paddingX={2}>
             <Text color={focus ? theme.colors.focus : theme.colors.muted} bold={focus}>
-              {focus ? '↵ Cerrar sesión  · Esc Volver' : 'Tab para interactuar'}
+              {focus ? '↵ Log out  · Esc Back' : 'Tab to interact'}
             </Text>
           </Box>
         </Box>
-        <Text dimColor>Tab para volver</Text>
+        <Text dimColor>Tab to go back</Text>
       </Box>
     );
   }
@@ -89,45 +89,45 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
   return (
     <Box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={1}>
       <Box borderStyle="round" borderColor={focus ? theme.colors.focus : theme.colors.border} paddingX={3} paddingY={1} flexDirection="column" gap={1} width={50}>
-        <Text bold color={theme.colors.primary}>◐ Iniciar sesión</Text>
-        <Text color={theme.colors.muted}>Elegí cómo entrar — offline o Microsoft</Text>
+        <Text bold color={theme.colors.primary}>◐ Sign in</Text>
+        <Text color={theme.colors.muted}>Choose how to log in — offline or Microsoft</Text>
 
         {/* Offline */}
         <Box marginTop={1} flexDirection="column" gap={1} borderStyle="single" borderColor={inputFocused ? theme.colors.focus : theme.colors.border} paddingX={1} paddingY={1}>
-          <Text color={inputFocused ? theme.colors.focus : theme.colors.muted} bold={inputFocused}>■ Offline — solo nombre</Text>
-          <Text color={theme.colors.muted}>Usuario (3-16, a-z, 0-9, _):</Text>
+          <Text color={inputFocused ? theme.colors.focus : theme.colors.muted} bold={inputFocused}>■ Offline — name only</Text>
+          <Text color={theme.colors.muted}>Username (3-16, a-z, 0-9, _):</Text>
           <Box borderStyle="single" borderColor={inputFocused ? theme.colors.focus : theme.colors.border} paddingX={1}>
             <Text>
               <Text color={input.length === 0 ? 'gray' : theme.colors.text} dimColor={input.length === 0}>
-                {(input.length === 0 ? 'ej: AledEv' : input).padEnd(16, ' ')}
+                {(input.length === 0 ? 'e.g. AledEv' : input).padEnd(16, ' ')}
               </Text>
               <Text color={inputFocused ? theme.colors.focus : 'gray'}>{inputFocused ? '█' : ' '}</Text>
             </Text>
           </Box>
-          {!isValid && input.length > 0 && <Text color="yellow">Mínimo 3 caracteres</Text>}
+          {!isValid && input.length > 0 && <Text color="yellow">Minimum 3 characters</Text>}
           <Box marginTop={1} width={20} justifyContent="center">
             <Text color={isValid && inputFocused ? 'green' : 'gray'} bold={isValid && inputFocused} backgroundColor={isValid && inputFocused ? 'green' : undefined}>
-              {inputFocused ? ' ► Entrar offline ' : '   Entrar offline '}
+              {inputFocused ? ' ► Login offline ' : '   Login offline '}
             </Text>
           </Box>
         </Box>
 
         <Box justifyContent="center">
-          <Text dimColor>── o ──</Text>
+          <Text dimColor>── or ──</Text>
         </Box>
 
         {/* Microsoft */}
         <Box borderStyle="single" borderColor={msFocused ? theme.colors.focus : theme.colors.border} paddingX={1} paddingY={1} flexDirection="column" alignItems="center" gap={1}>
           <Text color={msFocused ? theme.colors.focus : theme.colors.muted} bold={msFocused}>⬡ Online — Microsoft</Text>
-          <Text color={theme.colors.muted} dimColor>Usa tu cuenta de Minecraft</Text>
+          <Text color={theme.colors.muted} dimColor>Use your Minecraft account</Text>
           <Box marginTop={1} width={24} justifyContent="center">
             <Text color={msFocused ? 'black' : 'cyan'} bold={msFocused} backgroundColor={msFocused ? 'cyan' : undefined}>
-              {msFocused ? ' ► Login con Microsoft ' : '   Login con Microsoft '}
+              {msFocused ? ' ► Login with Microsoft ' : '   Login with Microsoft '}
             </Text>
           </Box>
         </Box>
       </Box>
-      <Text dimColor>{focus ? 'Tab para cambiar · Enter para confirmar · Esc Volver' : 'Tab para enfocar el login'}</Text>
+      <Text dimColor>{focus ? 'Tab to switch · Enter to confirm · Esc Back' : 'Tab to focus login'}</Text>
     </Box>
   );
 };

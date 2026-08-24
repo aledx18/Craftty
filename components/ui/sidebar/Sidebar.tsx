@@ -27,7 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   items,
   selectedId,
   onSelect,
-  title = 'NAVEGACIÓN',
+  title = 'NAVIGATION',
   theme = darkTheme,
   width = 20,
   height,
@@ -100,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </>
           ) : (
             <>
-              <Text color={selectedId === 'accounts' ? theme.colors.focus : theme.colors.muted} bold={selectedId === 'accounts'} wrap="truncate">No conectado</Text>
+              <Text color={selectedId === 'accounts' ? theme.colors.focus : theme.colors.muted} bold={selectedId === 'accounts'} wrap="truncate">Not connected</Text>
               <Text dimColor>offline</Text>
             </>
           )}

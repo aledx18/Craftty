@@ -5,9 +5,9 @@ import fs from 'node:fs';
 const APP_NAME = 'craftty';
 
 /**
- * Carpeta de configuración de la app.
- * En desarrollo usa "craftty-dev" para no mezclar datos de prueba
- * con los reales. Solo Linux por ahora -> ~/.config/<carpeta>
+ * App configuration folder.
+ * In development uses "craftty-dev" to keep test data separate from real data.
+ * Linux only for now -> ~/.config/<folder>
  */
 function getConfigDir(): string {
   const isDev = process.env.NODE_ENV !== 'production';
@@ -25,10 +25,10 @@ function getFilePath(fileName: string): string {
 }
 
 /**
- * Lee y parsea un JSON. Si no existe o está corrupto, devuelve el
- * valor por defecto en vez de tirar error (así la app arranca limpia
- * la primera vez, sin login, sin instancias, etc).
- * No loguea a stdout/stderr para no ensuciar la TUI (altScreen).
+ * Read and parse a JSON file. If it doesn't exist or is corrupted,
+ * returns the default value instead of throwing (so the app starts clean
+ * on first run — no login, no instances, etc).
+ * Silently fails — we don't want to break the TUI (altScreen).
  */
 function readJSON<T>(fileName: string, defaultValue: T): T {
   const filePath = getFilePath(fileName);
@@ -41,8 +41,8 @@ function readJSON<T>(fileName: string, defaultValue: T): T {
     const raw = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(raw) as T;
   } catch {
-    // Silencioso: en TUI no queremos romper el render.
-    // Si quisieras debug, escribe a un archivo de log en vez de console.error.
+    // Silent: in a TUI we don't want to break the render.
+    // If you need debug, write to a log file instead of console.error.
     return defaultValue;
   }
 }
@@ -62,14 +62,14 @@ function writeJSON<T>(fileName: string, data: T): void {
   }
 }
 
-// ---------- Tipos de dominio ----------
+// ---------- Domain types ----------
 
 export type InstanceLoader = 'vanilla' | 'fabric' | 'forge' | 'quilt' | 'neoforge';
 export type InstanceStatus = 'ready' | 'playing' | 'updating' | 'error';
 export type JavaVersion = '8' | '11' | '17' | '21';
 
 export const JAVA_VERSIONS: { value: JavaVersion; label: string }[] = [
-  { value: '8', label: 'Java 8 (1.12 y anteriores)' },
+  { value: '8', label: 'Java 8 (1.12 and earlier)' },
   { value: '11', label: 'Java 11' },
   { value: '17', label: 'Java 17 (1.17 - 1.20.4)' },
   { value: '21', label: 'Java 21 (1.20.5+)' },
@@ -102,7 +102,7 @@ const DEFAULT_SETTINGS: Settings = {
   memoryMaxMB: 4096,
 };
 
-// ---------- API pública: account ----------
+// ---------- Public API: account ----------
 
 export function loadAccount(): Account | null {
   return readJSON<Account | null>('account.json', null);
@@ -121,7 +121,7 @@ export function clearAccount(): void {
   }
 }
 
-// ---------- API pública: instances ----------
+// ---------- Public API: instances ----------
 
 export function loadInstances(): Instance[] {
   return readJSON<Instance[]>('instances.json', []);
@@ -131,7 +131,7 @@ export function saveInstances(instances: Instance[]): void {
   writeJSON('instances.json', instances);
 }
 
-// ---------- API pública: settings ----------
+// ---------- Public API: settings ----------
 
 export function loadSettings(): Settings {
   return readJSON<Settings>('settings.json', DEFAULT_SETTINGS);
@@ -141,7 +141,7 @@ export function saveSettings(settings: Settings): void {
   writeJSON('settings.json', settings);
 }
 
-// ---------- Utilidad ----------
+// ---------- Utilities ----------
 
 export function getConfigDirPath(): string {
   return getConfigDir();

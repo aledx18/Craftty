@@ -21,8 +21,8 @@ export interface InstanceCardProps {
 
 function statusBadge(status: InstanceStatus) {
   switch (status) {
-    case 'playing': return { label: 'jugando', variant: 'success' as const };
-    case 'updating': return { label: 'actualizando', variant: 'warning' as const };
+    case 'playing': return { label: 'playing', variant: 'success' as const };
+    case 'updating': return { label: 'updating', variant: 'warning' as const };
     case 'error': return { label: 'error', variant: 'error' as const };
     default: return null;
   }
@@ -63,7 +63,7 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({
       paddingX={1}
       paddingY={0}
     >
-      {/* Header de la card: icono + nombre */}
+      {/* Card header: icon + name */}
       <Box gap={1}>
         <Text color={selected ? theme.colors.primary : theme.colors.muted}>{loaderIcon(loader)}</Text>
         <Text bold color={selected ? theme.colors.primary : theme.colors.text} wrap="truncate-end">
@@ -71,7 +71,7 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({
         </Text>
       </Box>
 
-      {/* Versión + loader + Java */}
+      {/* Version + loader + Java */}
       <Box gap={1} marginTop={0}>
         <Text color={theme.colors.muted}>{version}</Text>
         <Text dimColor>·</Text>
@@ -84,7 +84,7 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({
         )}
       </Box>
 
-      {/* Footer: badge estado + tiempo */}
+      {/* Footer: status badge + play time */}
       <Box marginTop={1} justifyContent="space-between">
         <Box>
           {badge ? (
@@ -92,7 +92,7 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({
               <Text color={badge.variant === 'success' ? 'green' : badge.variant === 'warning' ? 'yellow' : 'red'}> {badge.label} </Text>
             </Box>
           ) : (
-            <Text color="gray"> listo</Text>
+            <Text color="gray"> ready</Text>
           )}
         </Box>
         {playTime && <Text dimColor>{playTime}</Text>}
@@ -100,14 +100,14 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({
 
       {focused && (
         <Box marginTop={0}>
-          <Text color={theme.colors.focus} dimColor>↵ jugar · e editar</Text>
+          <Text color={theme.colors.focus} dimColor>↵ play · e edit</Text>
         </Box>
       )}
     </Box>
   );
 };
 
-// Grid contenedor — layout flex wrap simulado con filas
+// Grid container — simulated flex wrap layout with rows
 export interface InstanceGridProps {
   children: React.ReactNode;
   gap?: number;
