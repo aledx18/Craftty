@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
+import fs from 'node:fs';
 import { loadInstances, saveInstances } from '../storage.js';
-import { removeInstanceFolder } from '../instanceFiles.js';
+import { removeInstanceFolder, getInstancesDir } from '../instanceFiles.js';
 import type { Instance } from '../storage.js';
 
 const SEED_INSTANCES: Instance[] = [
@@ -24,17 +25,22 @@ interface LegacyInstance {
 export function useInstances() {
   const [instances, setInstances] = useState<Instance[]>(() => {
     const loaded = (loadInstances() as unknown as LegacyInstance[]).map(
-      (inst): Instance => ({
-        id: inst.id,
-        name: inst.name,
-        version: inst.version,
-        loader: (inst.loader as Instance['loader']) ?? 'vanilla',
-        folder: inst.folder,
-        javaVersion: (inst.javaVersion as Instance['javaVersion']) ?? '17',
-        playTime: inst.playTime,
-        status: inst.status as Instance['status'],
-        createdAt: inst.createdAt ?? new Date().toISOString(),
-      })
+      (inst): Instance => {
+        // Migración: folder relativo -> absoluto + ensure folder exists
+        const absFolder = inst.folder.startsWith('/') ? inst.folder : `${getInstancesDir()}/${inst.folder}`;
+        try { fs.mkdirSync(absFolder, { recursive: true }); } catch {}
+        return {
+          id: inst.id,
+          name: inst.name,
+          version: inst.version,
+          loader: (inst.loader as Instance['loader']) ?? 'vanilla',
+          folder: absFolder,
+          javaVersion: (inst.javaVersion as Instance['javaVersion']) ?? '17',
+          playTime: inst.playTime,
+          status: inst.status as Instance['status'],
+          createdAt: inst.createdAt ?? new Date().toISOString(),
+        };
+      }
     );
     if (loaded.length === 0) {
       saveInstances(SEED_INSTANCES);
