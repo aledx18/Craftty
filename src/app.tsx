@@ -238,7 +238,7 @@ function App() {
               focus={true}
               existingNames={instances.map((i) => i.name)}
               onConfirm={({ name, javaVersion }) => {
-                const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Math.random().toString(36).slice(2, 6);
+                const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + crypto.randomUUID().slice(0, 8);
                 const folder = ensureInstanceFolder(id);
                 addInstance({
                   id,
