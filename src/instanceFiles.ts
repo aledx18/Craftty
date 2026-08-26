@@ -11,6 +11,20 @@ function getDataDir(): string {
   return path.join(base, folderName);
 }
 
+/**
+ * Shared Minecraft resources (assets, libraries, version jars).
+ * Instances only keep worlds/configs under getInstancePath().
+ */
+export function getSharedPath(): string {
+  return path.join(getDataDir(), 'shared');
+}
+
+export function ensureSharedPath(): string {
+  const p = getSharedPath();
+  fs.mkdirSync(p, { recursive: true });
+  return p;
+}
+
 export function getInstancesDir(): string {
   return path.join(getDataDir(), 'instances');
 }
