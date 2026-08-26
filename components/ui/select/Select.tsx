@@ -18,17 +18,30 @@ export interface SelectProps<T = string> {
   value?: T;
   /** Whether this select captures keyboard input */
   focus?: boolean;
+  /** Max number of items visible at once. Default 8. When the list is longer, a scroll window follows the active item. */
+  maxVisible?: number;
   /** Theme override — defaults to darkTheme */
   theme?: InkUITheme;
 }
 
-// ─── shared list display ─────────────────────────────────────────────────────
+// ─── shared list display (with scroll window) ────────────────────────────────
 
 interface ListDisplayProps<T> {
   items: SelectItem<T>[];
   activeIndex: number;
   isFocused: boolean;
   theme: InkUITheme;
+  maxVisible: number;
+}
+
+function computeWindow(total: number, active: number, maxVisible: number) {
+  if (total <= maxVisible) return { start: 0, end: total };
+  // Keep `active` centered-ish in the window
+  const half = Math.floor(maxVisible / 2);
+  let start = Math.max(0, active - half);
+  const end = Math.min(total, start + maxVisible);
+  start = Math.max(0, end - maxVisible);
+  return { start, end };
 }
 
 function ListDisplay<T>({
@@ -36,11 +49,22 @@ function ListDisplay<T>({
   activeIndex,
   isFocused,
   theme,
+  maxVisible,
 }: ListDisplayProps<T>) {
+  const total = items.length;
+  const { start, end } = computeWindow(total, activeIndex, maxVisible);
+  const visibleItems = items.slice(start, end);
+  const hasMoreAbove = start > 0;
+  const hasMoreBelow = end < total;
+
   return (
     <Box flexDirection="column">
-      {items.map((item, i) => {
-        const isActive   = i === activeIndex;
+      {hasMoreAbove && (
+        <Text dimColor>  ↑ {start} more above</Text>
+      )}
+      {visibleItems.map((item, i) => {
+        const realIndex = start + i;
+        const isActive   = realIndex === activeIndex;
         const isDisabled = item.disabled === true;
 
         let labelColor: string;
@@ -68,6 +92,9 @@ function ListDisplay<T>({
           </Box>
         );
       })}
+      {hasMoreBelow && (
+        <Text dimColor>  ↓ {total - end} more below</Text>
+      )}
     </Box>
   );
 }
@@ -79,9 +106,10 @@ interface FocusedSelectProps<T> {
   onSelect: (item: SelectItem<T>) => void;
   value?: T;
   theme: InkUITheme;
+  maxVisible: number;
 }
 
-function FocusedSelect<T>({ items, onSelect, value, theme }: FocusedSelectProps<T>) {
+function FocusedSelect<T>({ items, onSelect, value, theme, maxVisible }: FocusedSelectProps<T>) {
   const { exit } = useApp();
 
   // Controlled vs uncontrolled
@@ -122,7 +150,15 @@ function FocusedSelect<T>({ items, onSelect, value, theme }: FocusedSelectProps<
     }
   });
 
-  return <ListDisplay items={items} activeIndex={activeIndex} isFocused theme={theme} />;
+  return (
+    <ListDisplay
+      items={items}
+      activeIndex={activeIndex}
+      isFocused
+      theme={theme}
+      maxVisible={maxVisible}
+    />
+  );
 }
 
 // ─── public component ─────────────────────────────────────────────────────────
@@ -132,13 +168,22 @@ export function Select<T = string>({
   onSelect,
   value,
   focus = true,
+  maxVisible = 8,
   theme = darkTheme,
 }: SelectProps<T>) {
   const { isRawModeSupported } = useStdin();
   const canFocus = focus && isRawModeSupported;
 
   if (canFocus) {
-    return <FocusedSelect items={items} onSelect={onSelect} value={value} theme={theme} />;
+    return (
+      <FocusedSelect
+        items={items}
+        onSelect={onSelect}
+        value={value}
+        theme={theme}
+        maxVisible={maxVisible}
+      />
+    );
   }
 
   const activeIndex = value !== undefined
@@ -150,6 +195,7 @@ export function Select<T = string>({
       activeIndex={activeIndex}
       isFocused={false}
       theme={theme}
+      maxVisible={maxVisible}
     />
   );
 }

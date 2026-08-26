@@ -73,11 +73,11 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
           </Box>
           <Box marginTop={1} borderStyle="round" borderColor={focus ? theme.colors.focus : theme.colors.border} paddingX={2}>
             <Text color={focus ? theme.colors.focus : theme.colors.muted} bold={focus}>
-              {focus ? '↵ Log out  · Esc Back' : 'Tab to interact'}
+              {focus ? '↵ Log out  · Esc Back' : 'Esc to interact'}
             </Text>
           </Box>
         </Box>
-        <Text dimColor>Tab to go back</Text>
+        <Text dimColor>Esc to go back</Text>
       </Box>
     );
   }
@@ -127,7 +127,7 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
           </Box>
         </Box>
       </Box>
-      <Text dimColor>{focus ? 'Tab to switch · Enter to confirm · Esc Back' : 'Tab to focus login'}</Text>
+      <Text dimColor>{focus ? 'Esc to switch · Enter to confirm · Esc Back' : 'Esc to focus login'}</Text>
     </Box>
   );
 };
