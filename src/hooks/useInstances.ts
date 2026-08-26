@@ -4,12 +4,6 @@ import { loadInstances, saveInstances } from '../storage.js';
 import { removeInstanceFolder, getInstancesDir } from '../instanceFiles.js';
 import type { Instance } from '../storage.js';
 
-const SEED_INSTANCES: Instance[] = [
-  { id: 'skyfactory4', name: 'SkyFactory 4', version: '1.12.2', loader: 'forge', javaVersion: '8', folder: 'skyfactory4', playTime: '42h', status: 'ready', createdAt: new Date().toISOString() },
-  { id: 'atm9', name: 'All The Mods 9', version: '1.20.1', loader: 'forge', javaVersion: '17', folder: 'atm9', playTime: '128h', status: 'ready', createdAt: new Date().toISOString() },
-  { id: 'vanilla121', name: 'Vanilla 1.21.1', version: '1.21.1', loader: 'vanilla', javaVersion: '21', folder: 'vanilla121', playTime: '12h', status: 'ready', createdAt: new Date().toISOString() },
-];
-
 interface LegacyInstance {
   id: string;
   name: string;
@@ -42,10 +36,6 @@ export function useInstances() {
         };
       }
     );
-    if (loaded.length === 0) {
-      saveInstances(SEED_INSTANCES);
-      return SEED_INSTANCES;
-    }
     return loaded;
   });
 

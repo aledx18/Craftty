@@ -55,10 +55,12 @@ function writeJSON<T>(fileName: string, data: T): void {
   try {
     fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
     fs.renameSync(tmpPath, filePath);
-  } catch {
+  } catch (e) {
     try {
       if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
     } catch {}
+    // Callers must treat this as a failed persist — do not keep the new state.
+    throw e;
   }
 }
 
@@ -124,7 +126,8 @@ export function clearAccount(): void {
 // ---------- Public API: instances ----------
 
 export function loadInstances(): Instance[] {
-  return readJSON<Instance[]>('instances.json', []);
+  const data = readJSON<unknown>('instances.json', []);
+  return Array.isArray(data) ? (data as Instance[]) : [];
 }
 
 export function saveInstances(instances: Instance[]): void {
