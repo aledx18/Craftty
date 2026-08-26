@@ -1,26 +1,26 @@
-import React from 'react';
-import { Box, Text } from 'ink';
-import { darkTheme } from '../_core.js';
-import type { InkUITheme } from '../_core.js';
-import { Select } from '../select/Select.js';
+import { Box, Text } from 'ink'
+import type React from 'react'
+import type { InkUITheme } from '@/components/ui/_core.js'
+import { darkTheme } from '@/components/ui/_core.js'
+import { Select } from '@/components/ui/select/Select.js'
 
 export interface SidebarItem {
-  id: string;
-  label: string;
-  icon?: string;
-  badge?: string;
+  id: string
+  label: string
+  icon?: string
+  badge?: string
 }
 
 export interface SidebarProps {
-  items: SidebarItem[];
-  selectedId: string;
-  onSelect?: (id: string) => void;
-  title?: string;
-  theme?: InkUITheme;
-  width?: number;
-  height?: number;
-  focus?: boolean;
-  account?: { username: string } | null;
+  items: SidebarItem[]
+  selectedId: string
+  onSelect?: (id: string) => void
+  title?: string
+  theme?: InkUITheme
+  width?: number
+  height?: number
+  focus?: boolean
+  account?: { username: string } | null
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -50,7 +50,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       paddingRight={1}
       marginRight={1}
     >
-      <Text bold color={theme.colors.muted}>{title}</Text>
+      <Text bold color={theme.colors.muted}>
+        {title}
+      </Text>
       <Box marginTop={1}>
         <Select
           items={items.map((item) => ({
@@ -87,12 +89,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           borderStyle="round"
           borderColor={selectedId === 'accounts' ? theme.colors.focus : account ? 'green' : 'gray'}
         >
-          <Text color={selectedId === 'accounts' ? theme.colors.focus : account ? 'green' : 'gray'}>{account ? '◐' : '?'}</Text>
+          <Text color={selectedId === 'accounts' ? theme.colors.focus : account ? 'green' : 'gray'}>
+            {account ? '◐' : '?'}
+          </Text>
         </Box>
         <Box flexDirection="column" flexGrow={1} overflow="hidden">
           {account ? (
             <>
-              <Text color={selectedId === 'accounts' ? theme.colors.focus : theme.colors.text} bold wrap="truncate-end">{account.username}</Text>
+              <Text
+                color={selectedId === 'accounts' ? theme.colors.focus : theme.colors.text}
+                bold
+                wrap="truncate-end"
+              >
+                {account.username}
+              </Text>
               <Box gap={1}>
                 <Text color="green">●</Text>
                 <Text color={theme.colors.muted}>online</Text>
@@ -100,12 +110,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </>
           ) : (
             <>
-              <Text color={selectedId === 'accounts' ? theme.colors.focus : theme.colors.muted} bold={selectedId === 'accounts'} wrap="truncate">Not connected</Text>
+              <Text
+                color={selectedId === 'accounts' ? theme.colors.focus : theme.colors.muted}
+                bold={selectedId === 'accounts'}
+                wrap="truncate"
+              >
+                Not connected
+              </Text>
               <Text dimColor>offline</Text>
             </>
           )}
         </Box>
       </Box>
     </Box>
-  );
-};
+  )
+}

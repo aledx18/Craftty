@@ -1,1 +1,1 @@
-export { AuthPanel } from './AuthPanel.js';
+export { AuthPanel } from '@/components/ui/auth/AuthPanel.js'

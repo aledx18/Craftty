@@ -8,69 +8,113 @@ export const spacing = {
   md: 2,
   lg: 3,
   xl: 4,
-} as const;
+} as const
 
 export const borderStyles = {
   single: {
-    topLeft: '┌', top: '─', topRight: '┐',
-    left: '│', right: '│',
-    bottomLeft: '└', bottom: '─', bottomRight: '┘',
-    topT: '┬', bottomT: '┴', leftT: '├', rightT: '┤', cross: '┼',
+    topLeft: '┌',
+    top: '─',
+    topRight: '┐',
+    left: '│',
+    right: '│',
+    bottomLeft: '└',
+    bottom: '─',
+    bottomRight: '┘',
+    topT: '┬',
+    bottomT: '┴',
+    leftT: '├',
+    rightT: '┤',
+    cross: '┼',
   },
   double: {
-    topLeft: '╔', top: '═', topRight: '╗',
-    left: '║', right: '║',
-    bottomLeft: '╚', bottom: '═', bottomRight: '╝',
-    topT: '╦', bottomT: '╩', leftT: '╠', rightT: '╣', cross: '╬',
+    topLeft: '╔',
+    top: '═',
+    topRight: '╗',
+    left: '║',
+    right: '║',
+    bottomLeft: '╚',
+    bottom: '═',
+    bottomRight: '╝',
+    topT: '╦',
+    bottomT: '╩',
+    leftT: '╠',
+    rightT: '╣',
+    cross: '╬',
   },
   rounded: {
-    topLeft: '╭', top: '─', topRight: '╮',
-    left: '│', right: '│',
-    bottomLeft: '╰', bottom: '─', bottomRight: '╯',
-    topT: '┬', bottomT: '┴', leftT: '├', rightT: '┤', cross: '┼',
+    topLeft: '╭',
+    top: '─',
+    topRight: '╮',
+    left: '│',
+    right: '│',
+    bottomLeft: '╰',
+    bottom: '─',
+    bottomRight: '╯',
+    topT: '┬',
+    bottomT: '┴',
+    leftT: '├',
+    rightT: '┤',
+    cross: '┼',
   },
   bold: {
-    topLeft: '┏', top: '━', topRight: '┓',
-    left: '┃', right: '┃',
-    bottomLeft: '┗', bottom: '━', bottomRight: '┛',
-    topT: '┳', bottomT: '┻', leftT: '┣', rightT: '┫', cross: '╋',
+    topLeft: '┏',
+    top: '━',
+    topRight: '┓',
+    left: '┃',
+    right: '┃',
+    bottomLeft: '┗',
+    bottom: '━',
+    bottomRight: '┛',
+    topT: '┳',
+    bottomT: '┻',
+    leftT: '┣',
+    rightT: '┫',
+    cross: '╋',
   },
   ascii: {
-    topLeft: '+', top: '-', topRight: '+',
-    left: '|', right: '|',
-    bottomLeft: '+', bottom: '-', bottomRight: '+',
-    topT: '+', bottomT: '+', leftT: '+', rightT: '+', cross: '+',
+    topLeft: '+',
+    top: '-',
+    topRight: '+',
+    left: '|',
+    right: '|',
+    bottomLeft: '+',
+    bottom: '-',
+    bottomRight: '+',
+    topT: '+',
+    bottomT: '+',
+    leftT: '+',
+    rightT: '+',
+    cross: '+',
   },
-} as const;
+} as const
 
-export type BorderStyle = keyof typeof borderStyles;
+export type BorderStyle = keyof typeof borderStyles
 
 export const spinnerFrames = {
-  dots:   ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
-  line:   ['−', '\\', '|', '/'],
-  arc:    ['◜', '◠', '◝', '◞', '◡', '◟'],
+  dots: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
+  line: ['−', '\\', '|', '/'],
+  arc: ['◜', '◠', '◝', '◞', '◡', '◟'],
   bounce: ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'],
-} as const;
+} as const
 
-export type SpinnerType = keyof typeof spinnerFrames;
-
+export type SpinnerType = keyof typeof spinnerFrames
 
 export interface InkUITheme {
   colors: {
-    primary: string;
-    secondary: string;
-    success: string;
-    warning: string;
-    error: string;
-    info: string;
-    muted: string;
-    text: string;
-    textInverse: string;
-    border: string;
-    focus: string;
-    selection: string;
-  };
-  border: 'single' | 'double' | 'rounded' | 'bold' | 'ascii';
+    primary: string
+    secondary: string
+    success: string
+    warning: string
+    error: string
+    info: string
+    muted: string
+    text: string
+    textInverse: string
+    border: string
+    focus: string
+    selection: string
+  }
+  border: 'single' | 'double' | 'rounded' | 'bold' | 'ascii'
 }
 
 export const darkTheme: InkUITheme = {
@@ -89,7 +133,7 @@ export const darkTheme: InkUITheme = {
     selection: 'blue',
   },
   border: 'single',
-};
+}
 
 export const lightTheme: InkUITheme = {
   colors: {
@@ -107,5 +151,4 @@ export const lightTheme: InkUITheme = {
     selection: 'cyan',
   },
   border: 'rounded',
-};
-
+}

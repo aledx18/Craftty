@@ -1,2 +1,2 @@
-export { Sidebar } from './Sidebar.js';
-export type { SidebarProps, SidebarItem } from './Sidebar.js';
+export type { SidebarItem, SidebarProps } from '@/components/ui/sidebar/Sidebar.js'
+export { Sidebar } from '@/components/ui/sidebar/Sidebar.js'

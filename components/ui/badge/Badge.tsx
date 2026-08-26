@@ -1,26 +1,31 @@
-import React from 'react';
-import { Text, Box } from 'ink';
-import { darkTheme } from '../_core.js';
-import type { InkUITheme } from '../_core.js';
+import { Box, Text } from 'ink'
+import type React from 'react'
+import type { InkUITheme } from '@/components/ui/_core.js'
+import { darkTheme } from '@/components/ui/_core.js'
 
-export type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
+export type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info'
 
 export interface BadgeProps {
   /** Badge label text */
-  children: string;
+  children: string
   /** Visual style — maps to theme colors */
-  variant?: BadgeVariant;
+  variant?: BadgeVariant
   /** Theme override — defaults to darkTheme */
-  theme?: InkUITheme;
+  theme?: InkUITheme
 }
 
 function variantColor(variant: BadgeVariant, theme: InkUITheme): string {
   switch (variant) {
-    case 'success': return theme.colors.success;
-    case 'warning': return theme.colors.warning;
-    case 'error': return theme.colors.error;
-    case 'info': return theme.colors.info;
-    default: return theme.colors.muted;
+    case 'success':
+      return theme.colors.success
+    case 'warning':
+      return theme.colors.warning
+    case 'error':
+      return theme.colors.error
+    case 'info':
+      return theme.colors.info
+    default:
+      return theme.colors.muted
   }
 }
 
@@ -29,10 +34,10 @@ export const Badge: React.FC<BadgeProps> = ({
   variant = 'default',
   theme = darkTheme,
 }) => {
-  const color = variantColor(variant, theme);
+  const color = variantColor(variant, theme)
   return (
     <Box borderColor={'cyan'} borderStyle={'round'}>
       <Text color={color} bold inverse>{` ${children} `}</Text>
     </Box>
-  );
-};
+  )
+}

@@ -1,15 +1,15 @@
-import React from 'react';
-import { Box, Text, useWindowSize } from 'ink';
-import { darkTheme } from '../_core.js';
-import type { InkUITheme } from '../_core.js';
+import { Box, Text, useWindowSize } from 'ink'
+import type React from 'react'
+import type { InkUITheme } from '@/components/ui/_core.js'
+import { darkTheme } from '@/components/ui/_core.js'
 
 export interface WindowProps {
-  title: string;
-  version?: string;
-  subtitle?: string;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-  theme?: InkUITheme;
+  title: string
+  version?: string
+  subtitle?: string
+  children: React.ReactNode
+  footer?: React.ReactNode
+  theme?: InkUITheme
 }
 
 export const Window: React.FC<WindowProps> = ({
@@ -20,10 +20,10 @@ export const Window: React.FC<WindowProps> = ({
   footer,
   theme = darkTheme,
 }) => {
-  const { columns, rows } = useWindowSize();
-  const width = columns || 80;
-  const height = Math.max(10, rows || 24);
-  const fullTitle = version ? `${title} v${version}` : title;
+  const { columns, rows } = useWindowSize()
+  const width = columns || 80
+  const height = Math.max(10, rows || 24)
+  const fullTitle = version ? `${title} v${version}` : title
 
   return (
     <Box
@@ -39,9 +39,7 @@ export const Window: React.FC<WindowProps> = ({
           {' '}
           {fullTitle}{' '}
         </Text>
-        {subtitle && (
-          <Text color={theme.colors.muted}> · {subtitle}</Text>
-        )}
+        {subtitle && <Text color={theme.colors.muted}> · {subtitle}</Text>}
       </Box>
 
       {/* Main content — fills all available space */}
@@ -65,5 +63,5 @@ export const Window: React.FC<WindowProps> = ({
         </Box>
       )}
     </Box>
-  );
-};
+  )
+}

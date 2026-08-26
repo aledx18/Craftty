@@ -1,1 +1,1 @@
-export { AddInstanceModal } from './AddInstanceModal.js';
+export { AddInstanceModal } from '@/components/ui/add-instance/AddInstanceModal.js'

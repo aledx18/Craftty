@@ -1,12 +1,12 @@
-import os from "node:os";
-import path from "node:path";
-import fs from "node:fs";
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 export interface JavaRuntime {
   /** Absolute path to the java executable (not JAVA_HOME). */
-  path: string;
+  path: string
   /** 8, 17, 21, 27, ... */
-  major: number;
+  major: number
 }
 
 /**
@@ -15,18 +15,18 @@ export interface JavaRuntime {
  * Legacy:  java version "1.8.0_432"  → major 8
  */
 export function parseJavaMajor(output: string): number | null {
-  const match = output.match(/version "(\d+)(?:\.(\d+))?/);
-  if (!match) return null;
-  const first = Number(match[1]);
-  if (first === 1 && match[2]) return Number(match[2]);
-  return Number.isFinite(first) ? first : null;
+  const match = output.match(/version "(\d+)(?:\.(\d+))?/)
+  if (!match) return null
+  const first = Number(match[1])
+  if (first === 1 && match[2]) return Number(match[2])
+  return Number.isFinite(first) ? first : null
 }
 
 function existsFile(p: string): boolean {
   try {
-    return fs.existsSync(p) && fs.statSync(p).isFile();
+    return fs.existsSync(p) && fs.statSync(p).isFile()
   } catch {
-    return false;
+    return false
   }
 }
 
@@ -35,37 +35,37 @@ function existsFile(p: string): boolean {
  * JAVA_HOME first — that's the user's explicit choice.
  */
 function collectCandidates(): string[] {
-  const home = os.homedir();
-  const out: string[] = [];
+  const home = os.homedir()
+  const out: string[] = []
 
   if (process.env.JAVA_HOME) {
-    out.push(path.join(process.env.JAVA_HOME, "bin", "java"));
+    out.push(path.join(process.env.JAVA_HOME, 'bin', 'java'))
   }
 
-  for (const dir of (process.env.PATH ?? "").split(path.delimiter)) {
-    if (dir) out.push(path.join(dir, "java"));
+  for (const dir of (process.env.PATH ?? '').split(path.delimiter)) {
+    if (dir) out.push(path.join(dir, 'java'))
   }
 
   const roots = [
-    "/usr/lib/jvm",
-    path.join(home, ".local/share/mise/installs/java"),
-    path.join(home, ".sdkman/candidates/java"),
-    path.join(home, ".asdf/installs/java"),
-  ];
+    '/usr/lib/jvm',
+    path.join(home, '.local/share/mise/installs/java'),
+    path.join(home, '.sdkman/candidates/java'),
+    path.join(home, '.asdf/installs/java'),
+  ]
   for (const root of roots) {
-    if (!fs.existsSync(root)) continue;
-    let names: string[] = [];
+    if (!fs.existsSync(root)) continue
+    let names: string[] = []
     try {
-      names = fs.readdirSync(root);
+      names = fs.readdirSync(root)
     } catch {
-      continue;
+      continue
     }
     for (const name of names) {
-      out.push(path.join(root, name, "bin", "java"));
+      out.push(path.join(root, name, 'bin', 'java'))
     }
   }
 
-  return out;
+  return out
 }
 
 /**
@@ -76,39 +76,39 @@ function collectCandidates(): string[] {
  */
 function usableJavaPath(bin: string): string {
   try {
-    const resolved = fs.realpathSync(bin);
-    if (path.basename(resolved) === "java") return resolved;
+    const resolved = fs.realpathSync(bin)
+    if (path.basename(resolved) === 'java') return resolved
   } catch {}
-  return path.resolve(bin);
+  return path.resolve(bin)
 }
 
 async function probeJava(bin: string): Promise<JavaRuntime | null> {
-  if (!existsFile(bin)) return null;
+  if (!existsFile(bin)) return null
   try {
-    const proc = Bun.spawn([bin, "-version"], { stdout: "pipe", stderr: "pipe" });
+    const proc = Bun.spawn([bin, '-version'], { stdout: 'pipe', stderr: 'pipe' })
     const [stdout, stderr] = await Promise.all([
       new Response(proc.stdout).text(),
       new Response(proc.stderr).text(),
-    ]);
-    await proc.exited;
-    const major = parseJavaMajor(stderr + stdout);
-    if (major === null) return null;
-    return { path: usableJavaPath(bin), major };
+    ])
+    await proc.exited
+    const major = parseJavaMajor(stderr + stdout)
+    if (major === null) return null
+    return { path: usableJavaPath(bin), major }
   } catch {
-    return null;
+    return null
   }
 }
 
 export async function discoverJavaRuntimes(): Promise<JavaRuntime[]> {
-  const seen = new Set<string>();
-  const found: JavaRuntime[] = [];
+  const seen = new Set<string>()
+  const found: JavaRuntime[] = []
   for (const candidate of collectCandidates()) {
-    const runtime = await probeJava(candidate);
-    if (!runtime || seen.has(runtime.path)) continue;
-    seen.add(runtime.path);
-    found.push(runtime);
+    const runtime = await probeJava(candidate)
+    if (!runtime || seen.has(runtime.path)) continue
+    seen.add(runtime.path)
+    found.push(runtime)
   }
-  return found;
+  return found
 }
 
 /**
@@ -117,23 +117,21 @@ export async function discoverJavaRuntimes(): Promise<JavaRuntime[]> {
  * (Java 21 can often run on 22+; Java 17 cannot run 1.21).
  */
 export function pickJava(runtimes: JavaRuntime[], requiredMajor: number): JavaRuntime {
-  const exact = runtimes.find((r) => r.major === requiredMajor);
-  if (exact) return exact;
+  const exact = runtimes.find((r) => r.major === requiredMajor)
+  if (exact) return exact
 
-  const higher = runtimes
-    .filter((r) => r.major > requiredMajor)
-    .sort((a, b) => a.major - b.major);
-  if (higher[0]) return higher[0];
+  const higher = runtimes.filter((r) => r.major > requiredMajor).sort((a, b) => a.major - b.major)
+  if (higher[0]) return higher[0]
 
-  const found = runtimes.map((r) => `Java ${r.major} (${r.path})`).join(", ");
+  const found = runtimes.map((r) => `Java ${r.major} (${r.path})`).join(', ')
   throw new Error(
     found
       ? `Need Java ${requiredMajor}. Found: ${found}`
-      : `Need Java ${requiredMajor}. No Java runtime found.`
-  );
+      : `Need Java ${requiredMajor}. No Java runtime found.`,
+  )
 }
 
 export async function resolveJava(requiredMajor: number): Promise<JavaRuntime> {
-  const runtimes = await discoverJavaRuntimes();
-  return pickJava(runtimes, requiredMajor);
+  const runtimes = await discoverJavaRuntimes()
+  return pickJava(runtimes, requiredMajor)
 }

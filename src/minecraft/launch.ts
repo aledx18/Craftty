@@ -1,12 +1,12 @@
-import { launch } from "@xmcl/core";
-import type { ChildProcess } from "node:child_process";
-import fs from "node:fs";
-import path from "node:path";
-import type { Account, Instance, Settings } from "../storage.js";
-import { getSharedPath } from "../instanceFiles.js";
+import type { ChildProcess } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+import { launch } from '@xmcl/core'
+import { getSharedPath } from '@/src/instanceFiles.js'
+import type { Account, Instance, Settings } from '@/src/storage.js'
 
 function versionJsonPath(root: string, versionId: string): string {
-  return path.join(root, "versions", versionId, `${versionId}.json`);
+  return path.join(root, 'versions', versionId, `${versionId}.json`)
 }
 
 /**
@@ -15,19 +15,19 @@ function versionJsonPath(root: string, versionId: string): string {
  * installs keep launching.
  */
 export function resolveResourcePath(instance: Instance, shared = getSharedPath()): string {
-  if (fs.existsSync(versionJsonPath(shared, instance.version))) return shared;
-  if (fs.existsSync(versionJsonPath(instance.folder, instance.version))) return instance.folder;
-  return shared;
+  if (fs.existsSync(versionJsonPath(shared, instance.version))) return shared
+  if (fs.existsSync(versionJsonPath(instance.folder, instance.version))) return instance.folder
+  return shared
 }
 
 export async function launchInstance(opts: {
-  instance: Instance;
-  account: Account;
-  settings: Settings;
-  javaPath: string;
+  instance: Instance
+  account: Account
+  settings: Settings
+  javaPath: string
 }): Promise<ChildProcess> {
-  const { instance, account, settings, javaPath } = opts;
-  const resourcePath = resolveResourcePath(instance);
+  const { instance, account, settings, javaPath } = opts
+  const resourcePath = resolveResourcePath(instance)
 
   const child = await launch({
     gamePath: instance.folder,
@@ -40,19 +40,19 @@ export async function launchInstance(opts: {
       name: account.username,
       id: account.uuid,
     },
-    accessToken: "0",
-    userType: "mojang",
-    launcherName: "craftty",
-    launcherBrand: "craftty",
+    accessToken: '0',
+    userType: 'mojang',
+    launcherName: 'craftty',
+    launcherBrand: 'craftty',
     extraExecOption: {
       cwd: instance.folder,
       detached: true,
-      stdio: "ignore",
+      stdio: 'ignore',
     },
-  });
+  })
 
   // Detached + unref: closing craftty must not kill Minecraft.
   // 'exit' still fires while craftty is open.
-  child.unref();
-  return child;
+  child.unref()
+  return child
 }

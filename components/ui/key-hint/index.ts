@@ -1,2 +1,2 @@
-export type { KeyHintProps, KeyHintItem } from './KeyHint.js';
-export { KeyHint } from './KeyHint.js';
+export type { KeyHintItem, KeyHintProps } from '@/components/ui/key-hint/KeyHint.js'
+export { KeyHint } from '@/components/ui/key-hint/KeyHint.js'

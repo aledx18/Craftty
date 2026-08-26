@@ -1,23 +1,23 @@
-import React from 'react';
-import { Box, Text, useStdout } from 'ink';
-import { darkTheme } from '../_core.js';
-import type { InkUITheme } from '../_core.js';
+import { Box, Text, useStdout } from 'ink'
+import type React from 'react'
+import type { InkUITheme } from '@/components/ui/_core.js'
+import { darkTheme } from '@/components/ui/_core.js'
 
 export interface ProgressBarProps {
   /** Progress value 0–100 */
-  value: number;
+  value: number
   /** Optional label shown to the left of the bar */
-  label?: string;
+  label?: string
   /** Show percentage at the right end */
-  showPercent?: boolean;
+  showPercent?: boolean
   /** Fixed bar width in columns — defaults to auto (fills terminal width) */
-  width?: number;
+  width?: number
   /** Theme override — defaults to darkTheme */
-  theme?: InkUITheme;
+  theme?: InkUITheme
 }
 
-const FILL = '█';
-const EMPTY = '░';
+const FILL = '█'
+const EMPTY = '░'
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   value,
@@ -26,33 +26,31 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   width,
   theme = darkTheme,
 }) => {
-  const { stdout } = useStdout();
-  const termWidth = stdout?.columns ?? 80;
+  const { stdout } = useStdout()
+  const termWidth = stdout?.columns ?? 80
 
   // Clamp value to [0, 100]
-  const pct = Math.min(100, Math.max(0, value));
+  const pct = Math.min(100, Math.max(0, value))
 
   // Build the bar width:
   // total - label - space - percent suffix (e.g. " 100%") - 2 padding spaces
-  const percentSuffix = showPercent ? ` ${String(Math.round(pct)).padStart(3)}%` : '';
-  const labelPrefix = label ? `${label} ` : '';
-  const overhead = labelPrefix.length + percentSuffix.length;
-  const barWidth = width ?? Math.max(8, termWidth - overhead);
+  const percentSuffix = showPercent ? ` ${String(Math.round(pct)).padStart(3)}%` : ''
+  const labelPrefix = label ? `${label} ` : ''
+  const overhead = labelPrefix.length + percentSuffix.length
+  const barWidth = width ?? Math.max(8, termWidth - overhead)
 
-  const filled = Math.round((pct / 100) * barWidth);
-  const empty = barWidth - filled;
+  const filled = Math.round((pct / 100) * barWidth)
+  const empty = barWidth - filled
 
-  const filledStr = FILL.repeat(filled);
-  const emptyStr = EMPTY.repeat(empty);
+  const filledStr = FILL.repeat(filled)
+  const emptyStr = EMPTY.repeat(empty)
 
   return (
     <Box>
       {label ? <Text>{label} </Text> : null}
       <Text color={theme.colors.primary}>{filledStr}</Text>
       <Text color={theme.colors.muted}>{emptyStr}</Text>
-      {showPercent ? (
-        <Text color={theme.colors.muted}>{percentSuffix}</Text>
-      ) : null}
+      {showPercent ? <Text color={theme.colors.muted}>{percentSuffix}</Text> : null}
     </Box>
-  );
-};
+  )
+}
