@@ -27,6 +27,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .cache
 *.tsbuildinfo
 
+# test minecraft data
+test-minecraft/
+probe-asset-download.ts
+
 # IntelliJ based IDEs
 .idea
 
