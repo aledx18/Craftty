@@ -5,6 +5,11 @@
   "scripts": {
     "dev": "NODE_ENV=development bun run src/app.tsx",
     "start": "NODE_ENV=production bun run src/app.tsx",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
     "storage:where": "bun -e \"import { getConfigDirPath } from './src/storage.ts'; console.log(getConfigDirPath())\"",
     "storage:ls": "ls -R ~/.config/craftty* 2>&1 | head -n 50",
     "storage:cat": "echo \"=== DEV (~/.config/craftty-dev) ===\" && cat ~/.config/craftty-dev/*.json 2>/dev/null | head -n 80; echo \"\"; echo \"=== PROD (~/.config/craftty) ===\" && cat ~/.config/craftty/*.json 2>/dev/null | head -n 80",
@@ -12,6 +17,7 @@
     "storage:clear:prod": "rm -rf ~/.config/craftty ~/.local/share/craftty && echo \"✓ craftty config + data cleared\""
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.10",
     "@types/bun": "latest",
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18"
