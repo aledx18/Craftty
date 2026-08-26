@@ -15,7 +15,7 @@ const ANSI = {
 
 let restored = false;
 
-export function setupTerminal(title = 'MC Launcher') {
+export function setupTerminal(title = 'craftty') {
   process.stdout.write(ANSI.altScreenEnter);
   process.stdout.write(ANSI.cursorHide);
   process.stdout.write(ANSI.bracketedPasteEnter);

@@ -97,12 +97,6 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({
         </Box>
         {playTime && <Text dimColor>{playTime}</Text>}
       </Box>
-
-      {focused && (
-        <Box marginTop={0}>
-          <Text color={theme.colors.focus} dimColor>↵ play · e edit</Text>
-        </Box>
-      )}
     </Box>
   );
 };
