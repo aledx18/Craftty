@@ -1,7 +1,7 @@
 import { Box, Text, useApp, useInput, useStdin } from 'ink'
 import React, { useState } from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
-import { darkTheme } from '@/components/ui/_core.js'
+import { useTheme } from '@/components/ui/theme.js'
 
 export interface SelectItem<T = string> {
   label: string
@@ -166,8 +166,10 @@ export function Select<T = string>({
   value,
   focus = true,
   maxVisible = 8,
-  theme = darkTheme,
+  theme: themeProp,
 }: SelectProps<T>) {
+  const ctxTheme = useTheme()
+  const theme = themeProp ?? ctxTheme
   const { isRawModeSupported } = useStdin()
   const canFocus = focus && isRawModeSupported
 

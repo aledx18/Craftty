@@ -1,7 +1,8 @@
 import { Box, Text, useWindowSize } from 'ink'
 import type React from 'react'
-import type { InkUITheme } from '@/components/ui/_core.js'
-import { darkTheme } from '@/components/ui/_core.js'
+import { darkTheme, type InkUITheme } from '@/components/ui/_core.js'
+import { useTheme } from '@/components/ui/theme.js'
+import { Typewriter } from '@/components/ui/typewriter/index.js'
 
 export interface WindowProps {
   title: string
@@ -18,8 +19,10 @@ export const Window: React.FC<WindowProps> = ({
   subtitle,
   children,
   footer,
-  theme = darkTheme,
+  theme: themeProp,
 }) => {
+  const ctxTheme = useTheme()
+  const theme = themeProp ?? ctxTheme
   const { columns, rows } = useWindowSize()
   const width = columns || 80
   const height = Math.max(10, rows || 24)
@@ -35,11 +38,17 @@ export const Window: React.FC<WindowProps> = ({
     >
       {/* Title embedded in top border — marginTop -1 trick */}
       <Box marginTop={-1} marginLeft={2} paddingX={1} alignSelf="flex-start">
-        <Text bold color={theme.colors.primary}>
+        {/* <Text bold color={theme.colors.primary}>
           {' '}
           {fullTitle}{' '}
-        </Text>
-        {subtitle && <Text color={theme.colors.muted}> · {subtitle}</Text>}
+        </Text> */}
+        <Typewriter
+          theme={darkTheme}
+          text={fullTitle + ' · ' + subtitle}
+          speed={10}
+          onComplete={() => console.log('Done!')}
+        />
+        {/* {subtitle && <Text color={theme.colors.muted}> · {subtitle}</Text>} */}
       </Box>
 
       {/* Main content — fills all available space */}

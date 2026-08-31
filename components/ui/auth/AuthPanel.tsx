@@ -2,7 +2,8 @@ import { Box, Text, useInput } from 'ink'
 import type React from 'react'
 import { useState } from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
-import { darkTheme } from '@/components/ui/_core.js'
+import { TextInput } from '@/components/ui/text-input/index.js'
+import { useTheme } from '@/components/ui/theme.js'
 
 export interface AuthPanelProps {
   username?: string | null
@@ -14,6 +15,10 @@ export interface AuthPanelProps {
   theme?: InkUITheme
 }
 
+function sanitizeUsername(raw: string): string {
+  return raw.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 16)
+}
+
 export const AuthPanel: React.FC<AuthPanelProps> = ({
   username,
   isLoggedIn = false,
@@ -21,15 +26,16 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
   onLogin,
   onMicrosoftLogin,
   onLogout,
-  theme = darkTheme,
+  theme: themeProp,
 }) => {
+  const ctxTheme = useTheme()
+  const theme = themeProp ?? ctxTheme
   const [input, setInput] = useState(username ?? '')
   const [activeField, setActiveField] = useState<'input' | 'microsoft'>('input')
 
   useInput(
-    (char, key) => {
+    (_char, key) => {
       if (!focus) return
-      // Esc is handled by App (global)
       if (key.tab) {
         setActiveField((prev) => (prev === 'input' ? 'microsoft' : 'input'))
         return
@@ -43,21 +49,7 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
           onMicrosoftLogin?.()
           return
         }
-        if (input.trim().length >= 3) {
-          onLogin?.(input.trim())
-        }
-        return
-      }
-      // When focus is on the Microsoft button, don't type
-      if (activeField === 'microsoft') return
-
-      if (key.backspace || key.delete) {
-        setInput((prev) => prev.slice(0, -1))
-        return
-      }
-      if (key.ctrl || key.meta) return
-      if (char && char.length === 1 && input.length < 16 && /^[a-zA-Z0-9_]$/.test(char)) {
-        setInput((prev) => prev + char)
+        // Offline submit is handled by TextInput onSubmit when that field is focused.
       }
     },
     { isActive: focus },
@@ -68,21 +60,21 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
       <Box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={1}>
         <Box
           borderStyle="round"
-          borderColor={theme.colors.success}
+          borderColor={theme.colors.warning}
           paddingX={2}
           paddingY={1}
           flexDirection="column"
           alignItems="center"
           gap={1}
         >
-          <Text bold color={theme.colors.success}>
+          <Text bold color={theme.colors.warning}>
             ● Logged in
           </Text>
           <Box gap={1}>
             <Text color={theme.colors.text} bold>
               {username}
             </Text>
-            <Text color={theme.colors.muted}>online</Text>
+            <Text color={theme.colors.muted}>offline</Text>
           </Box>
           <Box
             marginTop={1}
@@ -91,11 +83,10 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
             paddingX={2}
           >
             <Text color={focus ? theme.colors.focus : theme.colors.muted} bold={focus}>
-              {focus ? '↵ Log out  · Esc Back' : 'Esc to interact'}
+              {focus ? '↵ Log out' : 'Tab or Enter from sidebar'}
             </Text>
           </Box>
         </Box>
-        <Text dimColor>Esc to go back</Text>
       </Box>
     )
   }
@@ -118,9 +109,8 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
         <Text bold color={theme.colors.primary}>
           ◐ Sign in
         </Text>
-        <Text color={theme.colors.muted}>Choose how to log in — offline or Microsoft</Text>
+        <Text color={theme.colors.muted}>Offline play for now · Microsoft later</Text>
 
-        {/* Offline */}
         <Box
           marginTop={1}
           flexDirection="column"
@@ -133,38 +123,29 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
           <Text color={inputFocused ? theme.colors.focus : theme.colors.muted} bold={inputFocused}>
             ■ Offline — name only
           </Text>
-          <Text color={theme.colors.muted}>Username (3-16, a-z, 0-9, _):</Text>
+          <Text color={theme.colors.muted}>Username (3-16, a-z, 0-9, _)</Text>
           <Box
             borderStyle="single"
             borderColor={inputFocused ? theme.colors.focus : theme.colors.border}
             paddingX={1}
           >
-            <Text>
-              {input.length === 0 ? (
-                <>
-                  <Text color={inputFocused ? theme.colors.focus : 'gray'}>
-                    {inputFocused ? '█' : ' '}
-                  </Text>
-                  <Text color="gray" dimColor>
-                    e.g. AledEv
-                  </Text>
-                </>
-              ) : (
-                <Text color={theme.colors.text}>
-                  {input}
-                  <Text color={inputFocused ? theme.colors.focus : 'gray'}>
-                    {inputFocused ? '█' : ''}
-                  </Text>
-                </Text>
-              )}
-            </Text>
+            <TextInput
+              value={input}
+              onChange={(v) => setInput(sanitizeUsername(v))}
+              onSubmit={(v) => {
+                if (v.trim().length >= 3) onLogin?.(v.trim())
+              }}
+              placeholder="e.g. AledEv"
+              focus={inputFocused}
+              theme={theme}
+            />
           </Box>
           {!isValid && input.length > 0 && <Text color="yellow">Minimum 3 characters</Text>}
           <Box marginTop={1} width={20} justifyContent="center">
             <Text
-              color={isValid && inputFocused ? 'green' : 'gray'}
+              color={isValid && inputFocused ? theme.colors.textInverse : theme.colors.muted}
               bold={isValid && inputFocused}
-              backgroundColor={isValid && inputFocused ? 'green' : undefined}
+              backgroundColor={isValid && inputFocused ? theme.colors.success : undefined}
             >
               {inputFocused ? ' ► Login offline ' : '   Login offline '}
             </Text>
@@ -175,7 +156,6 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
           <Text dimColor>── or ──</Text>
         </Box>
 
-        {/* Microsoft */}
         <Box
           borderStyle="single"
           borderColor={msFocused ? theme.colors.focus : theme.colors.border}
@@ -189,22 +169,19 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
             ⬡ Online — Microsoft
           </Text>
           <Text color={theme.colors.muted} dimColor>
-            Use your Minecraft account
+            Coming later — stub for now
           </Text>
           <Box marginTop={1} width={24} justifyContent="center">
             <Text
-              color={msFocused ? 'black' : 'cyan'}
+              color={msFocused ? theme.colors.textInverse : theme.colors.primary}
               bold={msFocused}
-              backgroundColor={msFocused ? 'cyan' : undefined}
+              backgroundColor={msFocused ? theme.colors.primary : undefined}
             >
               {msFocused ? ' ► Login with Microsoft ' : '   Login with Microsoft '}
             </Text>
           </Box>
         </Box>
       </Box>
-      <Text dimColor>
-        {focus ? 'Esc to switch · Enter to confirm · Esc Back' : 'Esc to focus login'}
-      </Text>
     </Box>
   )
 }

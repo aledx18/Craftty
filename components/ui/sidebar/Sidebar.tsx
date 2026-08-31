@@ -1,8 +1,8 @@
 import { Box, Text } from 'ink'
 import type React from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
-import { darkTheme } from '@/components/ui/_core.js'
 import { Select } from '@/components/ui/select/Select.js'
+import { useTheme } from '@/components/ui/theme.js'
 
 export interface SidebarItem {
   id: string
@@ -15,7 +15,6 @@ export interface SidebarProps {
   items: SidebarItem[]
   selectedId: string
   onSelect?: (id: string) => void
-  title?: string
   theme?: InkUITheme
   width?: number
   height?: number
@@ -27,13 +26,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   items,
   selectedId,
   onSelect,
-  title = 'NAVIGATION',
-  theme = darkTheme,
+  theme: themeProp,
   width = 20,
   height,
   focus = false,
   account = null,
 }) => {
+  const ctxTheme = useTheme()
+  const theme = themeProp ?? ctxTheme
   return (
     <Box
       flexDirection="column"
@@ -50,9 +50,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       paddingRight={1}
       marginRight={1}
     >
-      <Text bold color={theme.colors.muted}>
-        {title}
-      </Text>
       <Box marginTop={1}>
         <Select
           items={items.map((item) => ({
@@ -70,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <Box
         borderStyle="single"
-        borderColor={selectedId === 'accounts' ? theme.colors.focus : 'gray'}
+        borderColor={selectedId === 'accounts' ? theme.colors.focus : theme.colors.border}
         borderTop
         borderBottom={false}
         borderLeft={false}
@@ -82,14 +79,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         <Box
           width={5}
-          height={3}
           justifyContent="center"
           alignItems="center"
           flexShrink={0}
           borderStyle="round"
-          borderColor={selectedId === 'accounts' ? theme.colors.focus : account ? 'green' : 'gray'}
+          borderColor={
+            selectedId === 'accounts'
+              ? theme.colors.focus
+              : account
+                ? theme.colors.warning
+                : theme.colors.muted
+          }
         >
-          <Text color={selectedId === 'accounts' ? theme.colors.focus : account ? 'green' : 'gray'}>
+          <Text
+            color={
+              selectedId === 'accounts'
+                ? theme.colors.focus
+                : account
+                  ? theme.colors.warning
+                  : theme.colors.muted
+            }
+          >
             {account ? '◐' : '?'}
           </Text>
         </Box>
@@ -104,8 +114,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {account.username}
               </Text>
               <Box gap={1}>
-                <Text color="green">●</Text>
-                <Text color={theme.colors.muted}>online</Text>
+                <Text color={theme.colors.warning}>●</Text>
+                <Text color={theme.colors.muted}>offline</Text>
               </Box>
             </>
           ) : (

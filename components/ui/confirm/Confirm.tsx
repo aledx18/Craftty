@@ -1,7 +1,7 @@
 import { Box, Text, useInput } from 'ink'
 import React from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
-import { darkTheme } from '@/components/ui/_core.js'
+import { useTheme } from '@/components/ui/theme.js'
 
 export interface ConfirmProps {
   title: string
@@ -24,8 +24,10 @@ export const Confirm: React.FC<ConfirmProps> = ({
   focus = false,
   onConfirm,
   onCancel,
-  theme = darkTheme,
+  theme: themeProp,
 }) => {
+  const ctxTheme = useTheme()
+  const theme = themeProp ?? ctxTheme
   const [selected, setSelected] = React.useState<'cancel' | 'confirm'>('cancel')
 
   useInput(
@@ -60,31 +62,31 @@ export const Confirm: React.FC<ConfirmProps> = ({
     <Box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
       <Box
         borderStyle="round"
-        borderColor="red"
+        borderColor={theme.colors.error}
         paddingX={3}
         paddingY={1}
         flexDirection="column"
         gap={1}
         width={60}
       >
-        <Text bold color="red">
+        <Text bold color={theme.colors.error}>
           ⚠ {title}
         </Text>
         <Text color={theme.colors.text}>{message}</Text>
         {detail && (
-          <Text color="yellow" dimColor>
+          <Text color={theme.colors.warning} dimColor>
             {detail}
           </Text>
         )}
         <Box marginTop={1} gap={2} justifyContent="center">
           <Box
             borderStyle="round"
-            borderColor={selected === 'cancel' ? theme.colors.focus : 'gray'}
+            borderColor={selected === 'cancel' ? theme.colors.focus : theme.colors.border}
             paddingX={2}
             backgroundColor={selected === 'cancel' && focus ? theme.colors.focus : undefined}
           >
             <Text
-              color={selected === 'cancel' && focus ? 'black' : 'gray'}
+              color={selected === 'cancel' && focus ? theme.colors.textInverse : theme.colors.muted}
               bold={selected === 'cancel' && focus}
             >
               {selected === 'cancel' && focus ? `► ${cancelLabel} ` : `  ${cancelLabel} `}
@@ -92,12 +94,12 @@ export const Confirm: React.FC<ConfirmProps> = ({
           </Box>
           <Box
             borderStyle="round"
-            borderColor={selected === 'confirm' ? 'red' : 'gray'}
+            borderColor={selected === 'confirm' ? theme.colors.error : theme.colors.border}
             paddingX={2}
-            backgroundColor={selected === 'confirm' && focus ? 'red' : undefined}
+            backgroundColor={selected === 'confirm' && focus ? theme.colors.error : undefined}
           >
             <Text
-              color={selected === 'confirm' && focus ? 'white' : 'red'}
+              color={selected === 'confirm' && focus ? theme.colors.text : theme.colors.error}
               bold={selected === 'confirm' && focus}
             >
               {selected === 'confirm' && focus ? `► ${confirmLabel} ` : `  ${confirmLabel} `}

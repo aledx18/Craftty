@@ -1,7 +1,7 @@
 import { Box, Text, useStdout } from 'ink'
 import type React from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
-import { darkTheme } from '@/components/ui/_core.js'
+import { useTheme } from '@/components/ui/theme.js'
 
 export interface ProgressBarProps {
   /** Progress value 0–100 */
@@ -24,8 +24,10 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   label,
   showPercent = true,
   width,
-  theme = darkTheme,
+  theme: themeProp,
 }) => {
+  const ctxTheme = useTheme()
+  const theme = themeProp ?? ctxTheme
   const { stdout } = useStdout()
   const termWidth = stdout?.columns ?? 80
 

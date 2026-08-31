@@ -1,8 +1,7 @@
 import { Box, Text } from 'ink'
 import type React from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
-import { darkTheme } from '@/components/ui/_core.js'
-import { Badge } from '@/components/ui/badge/index.js'
+import { useTheme } from '@/components/ui/theme.js'
 
 export type InstanceStatus = 'ready' | 'playing' | 'updating' | 'error'
 
@@ -12,6 +11,8 @@ export interface InstanceCardProps {
   loader?: string // vanilla, fabric, forge, quilt
   javaVersion?: string
   status?: InstanceStatus
+  /** Compact progress under the status badge (e.g. "assets 40/400") */
+  progressLabel?: string
   playTime?: string
   selected?: boolean
   focused?: boolean
@@ -19,14 +20,14 @@ export interface InstanceCardProps {
   theme?: InkUITheme
 }
 
-function statusBadge(status: InstanceStatus) {
+function statusBadge(status: InstanceStatus, theme: InkUITheme) {
   switch (status) {
     case 'playing':
-      return { label: 'playing', variant: 'success' as const }
+      return { label: 'playing', color: theme.colors.success }
     case 'updating':
-      return { label: 'updating', variant: 'warning' as const }
+      return { label: 'updating', color: theme.colors.warning }
     case 'error':
-      return { label: 'error', variant: 'error' as const }
+      return { label: 'error', color: theme.colors.error }
     default:
       return null
   }
@@ -53,13 +54,16 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({
   loader = 'vanilla',
   javaVersion,
   status = 'ready',
+  progressLabel,
   playTime,
   selected = false,
   focused = false,
   width = 32,
-  theme = darkTheme,
+  theme: themeProp,
 }) => {
-  const badge = statusBadge(status)
+  const ctxTheme = useTheme()
+  const theme = themeProp ?? ctxTheme
+  const badge = statusBadge(status, theme)
   const borderColor = focused
     ? theme.colors.focus
     : selected
@@ -103,35 +107,20 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({
       <Box marginTop={1} justifyContent="space-between">
         <Box>
           {badge ? (
-            <Box
-              borderStyle="round"
-              borderColor={
-                badge.variant === 'success'
-                  ? 'green'
-                  : badge.variant === 'warning'
-                    ? 'yellow'
-                    : 'red'
-              }
-              paddingX={0}
-            >
-              <Text
-                color={
-                  badge.variant === 'success'
-                    ? 'green'
-                    : badge.variant === 'warning'
-                      ? 'yellow'
-                      : 'red'
-                }
-              >
-                {' '}
-                {badge.label}{' '}
-              </Text>
+            <Box borderStyle="round" borderColor={badge.color} paddingX={0}>
+              <Text color={badge.color}> {badge.label} </Text>
             </Box>
           ) : (
-            <Text color="gray"> ready</Text>
+            <Text color={theme.colors.muted}> ready</Text>
           )}
         </Box>
-        {playTime && <Text dimColor>{playTime}</Text>}
+        {progressLabel ? (
+          <Text color={theme.colors.warning} dimColor wrap="truncate-end">
+            {progressLabel}
+          </Text>
+        ) : playTime ? (
+          <Text dimColor>{playTime}</Text>
+        ) : null}
       </Box>
     </Box>
   )
