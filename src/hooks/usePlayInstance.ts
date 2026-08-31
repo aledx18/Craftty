@@ -44,7 +44,8 @@ export function usePlayInstance(opts: {
         setPlayError('Log in first (Accounts)')
         return
       }
-      if (playingRef.current.has(inst.id) || inst.status === 'playing') return
+      // Only trust in-memory playing set. Disk "playing" can be stale after craftty restart.
+      if (playingRef.current.has(inst.id)) return
       if (repairingRef.current) {
         setPlayError('Already repairing game files')
         return

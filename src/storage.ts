@@ -134,6 +134,36 @@ export function saveInstances(instances: Instance[]): void {
   writeJSON('instances.json', instances)
 }
 
+/**
+ * Runtime-only statuses cannot survive a craftty restart:
+ * - playing: child handle is gone (game may still run detached)
+ * - updating: install job is gone
+ * Call on load and on process exit so badges never stick forever.
+ */
+export function normalizeEphemeralStatus(status: InstanceStatus | undefined): InstanceStatus {
+  if (status === 'playing') return 'ready'
+  if (status === 'updating') return 'error'
+  return status ?? 'ready'
+}
+
+export function clearEphemeralInstanceStatuses(): void {
+  try {
+    const list = loadInstances()
+    let changed = false
+    const next = list.map((inst) => {
+      const status = normalizeEphemeralStatus(inst.status)
+      if (status !== inst.status) {
+        changed = true
+        return { ...inst, status }
+      }
+      return inst
+    })
+    if (changed) saveInstances(next)
+  } catch {
+    // Never block process exit on a bad write.
+  }
+}
+
 // ---------- Public API: settings ----------
 
 export function loadSettings(): Settings {

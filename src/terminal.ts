@@ -31,13 +31,18 @@ export function restoreTerminal() {
   process.stdout.write(ANSI.altScreenExit)
 }
 
-export function registerTerminalCleanup() {
-  process.on('exit', restoreTerminal)
+export function registerTerminalCleanup(onExit?: () => void) {
+  const run = () => {
+    try {
+      onExit?.()
+    } catch {}
+    restoreTerminal()
+  }
+  process.on('exit', run)
   // SIGINT: ignore — only 'q' closes the app.
-  // restoreTerminal() runs on 'exit' when the app closes normally.
   process.on('SIGINT', () => {})
   process.on('SIGTERM', () => {
-    restoreTerminal()
+    run()
     process.exit(0)
   })
 }

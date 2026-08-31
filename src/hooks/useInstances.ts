@@ -2,7 +2,11 @@ import fs from 'node:fs'
 import { useCallback, useState } from 'react'
 import { getInstancesDir, removeInstanceFolder } from '@/src/instanceFiles.js'
 import type { Instance } from '@/src/storage.js'
-import { loadInstances, saveInstances } from '@/src/storage.js'
+import {
+  loadInstances,
+  normalizeEphemeralStatus,
+  saveInstances,
+} from '@/src/storage.js'
 
 interface LegacyInstance {
   id: string
@@ -34,10 +38,16 @@ export function useInstances() {
         folder: absFolder,
         javaVersion: (inst.javaVersion as Instance['javaVersion']) ?? '17',
         playTime: inst.playTime,
-        status: inst.status as Instance['status'],
+        status: normalizeEphemeralStatus(inst.status as Instance['status']),
         createdAt: inst.createdAt ?? new Date().toISOString(),
       }
     })
+    // Persist cleanup so a stuck "playing" does not come back next launch.
+    const before = loadInstances()
+    const needsSave = before.some(
+      (b) => normalizeEphemeralStatus(b.status) !== (b.status ?? 'ready'),
+    )
+    if (needsSave) saveInstances(loaded)
     return loaded
   })
 
