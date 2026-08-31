@@ -150,5 +150,39 @@ export const lightTheme: InkUITheme = {
     focus: 'blue',
     selection: 'cyan',
   },
-  border: 'rounded',
+  // Ink Box uses "round", not InkUI's token name "rounded".
+  border: 'single',
+}
+
+/**
+ * craftty default look — same tokens as InkUI dark, slightly warmer focus/primary.
+ * Swap this (or pass another theme into ThemeProvider) to recolor the whole TUI.
+ */
+export const crafttyTheme: InkUITheme = {
+  ...darkTheme,
+  colors: {
+    ...darkTheme.colors,
+    primary: '#22d3ee',
+    secondary: '#a78bfa',
+    success: '#4ade80',
+    warning: '#fbbf24',
+    error: '#f87171',
+    info: '#60a5fa',
+    muted: '#9ca3af',
+    text: '#f3f4f6',
+    textInverse: '#111827',
+    border: '#4b5563',
+    focus: '#22d3ee',
+    selection: '#1e3a5f',
+  },
+  border: 'single',
+}
+
+/** Map InkUI border token → Ink <Box borderStyle>. */
+export function toInkBorder(
+  style: InkUITheme['border'],
+): 'single' | 'double' | 'round' | 'bold' | 'classic' {
+  if (style === 'rounded') return 'round'
+  if (style === 'ascii') return 'classic'
+  return style
 }
