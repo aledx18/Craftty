@@ -2,6 +2,7 @@ import { Box, Text, useInput } from 'ink'
 import type React from 'react'
 import { useState } from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
+import { icons } from '@/components/ui/icons.js'
 import { TextInput } from '@/components/ui/text-input/index.js'
 import { useTheme } from '@/components/ui/theme.js'
 
@@ -10,7 +11,6 @@ export interface AuthPanelProps {
   isLoggedIn?: boolean
   focus?: boolean
   onLogin?: (username: string) => void
-  onMicrosoftLogin?: () => void
   onLogout?: () => void
   theme?: InkUITheme
 }
@@ -24,13 +24,13 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
   isLoggedIn = false,
   focus = false,
   onLogin,
-  onMicrosoftLogin,
   onLogout,
   theme: themeProp,
 }) => {
   const ctxTheme = useTheme()
   const theme = themeProp ?? ctxTheme
   const [input, setInput] = useState(username ?? '')
+  // Microsoft row is visible but not actionable yet (no fake login).
   const [activeField, setActiveField] = useState<'input' | 'microsoft'>('input')
 
   useInput(
@@ -46,7 +46,7 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
           return
         }
         if (activeField === 'microsoft') {
-          onMicrosoftLogin?.()
+          // Honest no-op: Microsoft auth is not implemented.
           return
         }
         // Offline submit is handled by TextInput onSubmit when that field is focused.
@@ -68,7 +68,7 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
           gap={1}
         >
           <Text bold color={theme.colors.warning}>
-            ● Logged in
+            {icons.check} Logged in
           </Text>
           <Box gap={1}>
             <Text color={theme.colors.text} bold>
@@ -83,7 +83,7 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
             paddingX={2}
           >
             <Text color={focus ? theme.colors.focus : theme.colors.muted} bold={focus}>
-              {focus ? '↵ Log out' : 'Tab or Enter from sidebar'}
+              {focus ? '↵ Log out' : 'Enter to log out'}
             </Text>
           </Box>
         </Box>
@@ -107,9 +107,9 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
         width={50}
       >
         <Text bold color={theme.colors.primary}>
-          ◐ Sign in
+          {icons.signIn} Sign in
         </Text>
-        <Text color={theme.colors.muted}>Offline play for now · Microsoft later</Text>
+        <Text color={theme.colors.muted}>Offline play · Microsoft not available yet</Text>
 
         <Box
           marginTop={1}
@@ -121,7 +121,7 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
           paddingY={1}
         >
           <Text color={inputFocused ? theme.colors.focus : theme.colors.muted} bold={inputFocused}>
-            ■ Offline — name only
+            {icons.user} Offline — name only
           </Text>
           <Text color={theme.colors.muted}>Username (3-16, a-z, 0-9, _)</Text>
           <Box
@@ -158,26 +158,22 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
 
         <Box
           borderStyle="single"
-          borderColor={msFocused ? theme.colors.focus : theme.colors.border}
+          borderColor={msFocused ? theme.colors.muted : theme.colors.border}
           paddingX={1}
           paddingY={1}
           flexDirection="column"
           alignItems="center"
           gap={1}
         >
-          <Text color={msFocused ? theme.colors.focus : theme.colors.muted} bold={msFocused}>
-            ⬡ Online — Microsoft
+          <Text color={theme.colors.muted} bold={msFocused} dimColor>
+            {icons.server} Online — Microsoft
           </Text>
           <Text color={theme.colors.muted} dimColor>
-            Coming later — stub for now
+            Not implemented — coming later
           </Text>
-          <Box marginTop={1} width={24} justifyContent="center">
-            <Text
-              color={msFocused ? theme.colors.textInverse : theme.colors.primary}
-              bold={msFocused}
-              backgroundColor={msFocused ? theme.colors.primary : undefined}
-            >
-              {msFocused ? ' ► Login with Microsoft ' : '   Login with Microsoft '}
+          <Box marginTop={1} width={28} justifyContent="center">
+            <Text color={theme.colors.muted} dimColor>
+              {msFocused ? ' ► unavailable ' : '   unavailable '}
             </Text>
           </Box>
         </Box>
