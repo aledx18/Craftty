@@ -3,8 +3,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "NODE_ENV=development bun run src/app.tsx",
-    "start": "NODE_ENV=production bun run src/app.tsx",
+    "dev": "NODE_ENV=development bun run src/main.ts",
+    "start": "NODE_ENV=production bun run src/main.ts",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",

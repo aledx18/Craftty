@@ -16,7 +16,10 @@ const ANSI = {
 let restored = false
 
 export function setupTerminal(title = 'craftty') {
+  // Alternate buffer first so any later module noise stays off the primary screen.
   process.stdout.write(ANSI.altScreenEnter)
+  // Wipe whatever was left on the alt buffer (previous TUI session, etc.).
+  process.stdout.write('\x1b[2J\x1b[H')
   process.stdout.write(ANSI.cursorHide)
   process.stdout.write(ANSI.bracketedPasteEnter)
   process.stdout.write(`\x1b]0;${title}\x07`)
