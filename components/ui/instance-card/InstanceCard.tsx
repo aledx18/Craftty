@@ -1,6 +1,7 @@
 import { Box, Text } from 'ink'
 import type React from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
+import { icons, loaderIcon } from '@/components/ui/icons.js'
 import { useTheme } from '@/components/ui/theme.js'
 
 export type InstanceStatus = 'ready' | 'playing' | 'updating' | 'error'
@@ -8,7 +9,7 @@ export type InstanceStatus = 'ready' | 'playing' | 'updating' | 'error'
 export interface InstanceCardProps {
   name: string
   version: string
-  loader?: string // vanilla, fabric, forge, quilt
+  loader?: string
   javaVersion?: string
   status?: InstanceStatus
   /** Compact progress under the status badge (e.g. "assets 40/400") */
@@ -16,38 +17,26 @@ export interface InstanceCardProps {
   playTime?: string
   selected?: boolean
   focused?: boolean
-  width?: number
   theme?: InkUITheme
 }
 
-function statusBadge(status: InstanceStatus, theme: InkUITheme) {
+function statusMeta(status: InstanceStatus, theme: InkUITheme) {
   switch (status) {
     case 'playing':
-      return { label: 'playing', color: theme.colors.success }
+      return { icon: icons.play, label: 'playing', color: theme.colors.success }
     case 'updating':
-      return { label: 'updating', color: theme.colors.warning }
+      return { icon: icons.download, label: 'updating', color: theme.colors.warning }
     case 'error':
-      return { label: 'error', color: theme.colors.error }
+      return { icon: icons.error, label: 'error', color: theme.colors.error }
     default:
-      return null
+      return { icon: icons.check, label: 'ready', color: theme.colors.muted }
   }
 }
 
-function loaderIcon(loader?: string) {
-  switch (loader) {
-    case 'fabric':
-      return '◈'
-    case 'forge':
-      return '⬡'
-    case 'quilt':
-      return '⬢'
-    case 'neoforge':
-      return '⬣'
-    default:
-      return '⬜' // vanilla
-  }
-}
-
+/**
+ * Full-width list row for an instance (not a card grid).
+ * Layout: pointer · loader · name …… meta · status · time
+ */
 export const InstanceCard: React.FC<InstanceCardProps> = ({
   name,
   version,
@@ -58,84 +47,68 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({
   playTime,
   selected = false,
   focused = false,
-  width = 32,
   theme: themeProp,
 }) => {
   const ctxTheme = useTheme()
   const theme = themeProp ?? ctxTheme
-  const badge = statusBadge(status, theme)
-  const borderColor = focused
-    ? theme.colors.focus
-    : selected
-      ? theme.colors.primary
-      : theme.colors.border
-  const borderStyle = focused || selected ? ('round' as const) : ('single' as const)
+  const active = focused || selected
+  const meta = statusMeta(status, theme)
+  const nameColor = active ? theme.colors.focus : theme.colors.text
+  const muted = theme.colors.muted
 
   return (
-    <Box
-      flexDirection="column"
-      width={width}
-      borderStyle={borderStyle}
-      borderColor={borderColor}
-      paddingX={1}
-      paddingY={0}
-    >
-      {/* Card header: icon + name */}
-      <Box gap={1}>
-        <Text color={selected ? theme.colors.primary : theme.colors.muted}>
-          {loaderIcon(loader)}
-        </Text>
-        <Text bold color={selected ? theme.colors.primary : theme.colors.text} wrap="truncate-end">
+    <Box width="100%" gap={1} paddingX={1}>
+      <Text color={active ? theme.colors.focus : muted}>{active ? icons.mdChevronRight : ' '}</Text>
+      <Text color={active ? theme.colors.primary : muted}>{loaderIcon(loader)}</Text>
+      <Box width={22}>
+        <Text bold={active} color={nameColor} wrap="truncate-end">
           {name}
         </Text>
       </Box>
-
-      {/* Version + loader + Java */}
-      <Box gap={1} marginTop={0}>
-        <Text color={theme.colors.muted}>{version}</Text>
-        <Text dimColor>·</Text>
-        <Text color={theme.colors.muted}>{loader}</Text>
-        {javaVersion && (
+      <Text color={muted} wrap="truncate-end">
+        {version}
+        <Text dimColor> · </Text>
+        {loader}
+        {javaVersion ? (
           <>
-            <Text dimColor>·</Text>
-            <Text color={theme.colors.muted}>Java {javaVersion}</Text>
+            <Text dimColor> · </Text>
+            {icons.java} {javaVersion}
           </>
-        )}
-      </Box>
-
-      {/* Footer: status badge + play time */}
-      <Box marginTop={1} justifyContent="space-between">
-        <Box>
-          {badge ? (
-            <Box borderStyle="round" borderColor={badge.color} paddingX={0}>
-              <Text color={badge.color}> {badge.label} </Text>
-            </Box>
-          ) : (
-            <Text color={theme.colors.muted}> ready</Text>
-          )}
-        </Box>
-        {progressLabel ? (
-          <Text color={theme.colors.warning} dimColor wrap="truncate-end">
-            {progressLabel}
-          </Text>
-        ) : playTime ? (
-          <Text dimColor>{playTime}</Text>
         ) : null}
-      </Box>
+      </Text>
+      <Box flexGrow={1} />
+      {progressLabel ? (
+        <Text color={theme.colors.warning} wrap="truncate-end">
+          {icons.download} {progressLabel}
+        </Text>
+      ) : (
+        <Text color={meta.color}>
+          {meta.icon} {meta.label}
+        </Text>
+      )}
+      {playTime ? (
+        <Text dimColor>
+          {' '}
+          {icons.clock} {playTime}
+        </Text>
+      ) : null}
     </Box>
   )
 }
 
-// Grid container — simulated flex wrap layout with rows
-export interface InstanceGridProps {
+export interface InstanceListProps {
   children: React.ReactNode
   gap?: number
 }
 
-export const InstanceGrid: React.FC<InstanceGridProps> = ({ children, gap = 1 }) => {
+/** Vertical list of instance rows. */
+export const InstanceList: React.FC<InstanceListProps> = ({ children, gap = 1 }) => {
   return (
-    <Box flexDirection="row" flexWrap="wrap" gap={gap}>
+    <Box flexDirection="column" width="100%" gap={gap}>
       {children}
     </Box>
   )
 }
+
+/** @deprecated use InstanceList */
+export const InstanceGrid = InstanceList

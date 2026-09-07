@@ -1,6 +1,7 @@
 import { Box, Text, useApp, useInput, useStdin } from 'ink'
 import React, { useState } from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
+import { icons } from '@/components/ui/icons.js'
 import { useTheme } from '@/components/ui/theme.js'
 
 export interface SelectItem<T = string> {
@@ -68,7 +69,7 @@ function ListDisplay<T>({ items, activeIndex, isFocused, theme, maxVisible }: Li
           labelColor = theme.colors.text
         }
 
-        const indicator = isActive && isFocused ? '❯ ' : '  '
+        const indicator = isActive && isFocused ? `${icons.mdChevronRight} ` : '  '
 
         return (
           <Box key={String(item.value)}>

@@ -3,6 +3,7 @@ import type React from 'react'
 import { useEffect, useState } from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
 import { darkTheme } from '@/components/ui/_core.js'
+import { icons } from '@/components/ui/icons.js'
 
 export type StatusValue = 'online' | 'offline' | 'loading' | 'warning' | 'error' | 'idle'
 
@@ -14,7 +15,7 @@ export interface StatusIndicatorProps {
   theme?: InkUITheme
 }
 
-const PULSE_FRAMES = ['●', '◉', '●', '○']
+const PULSE_FRAMES = [icons.circle, icons.circleOutline, icons.circle, icons.circleOutline]
 
 function statusColor(status: StatusValue, theme: InkUITheme): string {
   switch (status) {
@@ -36,17 +37,17 @@ function statusColor(status: StatusValue, theme: InkUITheme): string {
 function staticDot(status: StatusValue): string {
   switch (status) {
     case 'online':
-      return '●'
+      return icons.circle
     case 'offline':
-      return '○'
+      return icons.circleOutline
     case 'error':
-      return '●'
+      return icons.error
     case 'warning':
-      return '⚠'
+      return icons.warn
     case 'loading':
-      return '◉'
+      return icons.download
     case 'idle':
-      return '○'
+      return icons.circleOutline
   }
 }
 

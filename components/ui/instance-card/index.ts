@@ -1,6 +1,10 @@
 export type {
   InstanceCardProps,
-  InstanceGridProps,
+  InstanceListProps,
   InstanceStatus,
 } from '@/components/ui/instance-card/InstanceCard.js'
-export { InstanceCard, InstanceGrid } from '@/components/ui/instance-card/InstanceCard.js'
+export {
+  InstanceCard,
+  InstanceGrid,
+  InstanceList,
+} from '@/components/ui/instance-card/InstanceCard.js'

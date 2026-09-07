@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Text } from 'ink';
-import { darkTheme } from '../_core.js';
-import type { InkUITheme } from '../_core.js';
+import { Text } from 'ink'
+import type React from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { InkUITheme } from '../_core.js'
+import { darkTheme } from '../_core.js'
 
 export interface TypewriterProps {
-  text: string;
-  speed?: number;
-  delay?: number;
-  cursor?: boolean;
-  cursorChar?: string;
-  onComplete?: () => void;
-  playing?: boolean;
-  theme?: InkUITheme;
+  text: string
+  speed?: number
+  delay?: number
+  cursor?: boolean
+  cursorChar?: string
+  onComplete?: () => void
+  playing?: boolean
+  theme?: InkUITheme
 }
 
 export const Typewriter: React.FC<TypewriterProps> = ({
@@ -24,56 +25,62 @@ export const Typewriter: React.FC<TypewriterProps> = ({
   playing = true,
   theme = darkTheme,
 }) => {
-  const [visibleLength, setVisibleLength] = useState(playing ? 0 : text.length);
-  const [started, setStarted] = useState(delay === 0 && playing);
-  const prevText = useRef(text);
-  const completedRef = useRef(false);
+  const [visibleLength, setVisibleLength] = useState(playing ? 0 : text.length)
+  const [started, setStarted] = useState(delay === 0 && playing)
+  const prevText = useRef(text)
+  const completedRef = useRef(false)
 
   useEffect(() => {
     if (!playing) {
-      setVisibleLength(text.length);
-      return;
+      setVisibleLength(text.length)
+      return
     }
     if (prevText.current !== text) {
-      prevText.current = text;
-      setVisibleLength(0);
-      setStarted(false);
-      completedRef.current = false;
+      prevText.current = text
+      setVisibleLength(0)
+      setStarted(false)
+      completedRef.current = false
     }
-  }, [text, playing]);
+  }, [text, playing])
 
   useEffect(() => {
-    if (!playing || started) return;
-    if (delay === 0) { setStarted(true); return; }
-    const t = setTimeout(() => setStarted(true), delay);
-    return () => clearTimeout(t);
-  }, [playing, started, delay]);
+    if (!playing || started) return
+    if (delay === 0) {
+      setStarted(true)
+      return
+    }
+    const t = setTimeout(() => setStarted(true), delay)
+    return () => clearTimeout(t)
+  }, [playing, started, delay])
 
   useEffect(() => {
-    if (!started || !playing) return;
+    if (!started || !playing) return
     if (visibleLength >= text.length) {
       if (!completedRef.current) {
-        completedRef.current = true;
-        onComplete?.();
+        completedRef.current = true
+        onComplete?.()
       }
-      return;
+      return
     }
-    const interval = Math.round(1000 / speed);
+    const interval = Math.round(1000 / speed)
     const id = setInterval(() => {
       setVisibleLength((prev) => {
-        if (prev >= text.length) { clearInterval(id); return prev; }
-        return prev + 1;
-      });
-    }, interval);
-    return () => clearInterval(id);
-  }, [started, playing, text, speed, visibleLength, onComplete]);
+        if (prev >= text.length) {
+          clearInterval(id)
+          return prev
+        }
+        return prev + 1
+      })
+    }, interval)
+    return () => clearInterval(id)
+  }, [started, playing, text, speed, visibleLength, onComplete])
 
-  const done = visibleLength >= text.length;
+  const done = visibleLength >= text.length
 
   return (
     <Text color={theme.colors.text}>
       {text.slice(0, visibleLength)}
       {cursor && !done ? <Text color={theme.colors.primary}>{cursorChar}</Text> : ''}
     </Text>
-  );
-};
+  )
+}

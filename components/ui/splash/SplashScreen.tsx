@@ -1,6 +1,7 @@
 import cfonts from 'cfonts'
 import { Box, Text, useInput, useWindowSize } from 'ink'
 import { useEffect, useMemo, useState } from 'react'
+import { icons } from '@/components/ui/icons.js'
 import { useTheme } from '@/components/ui/theme.js'
 
 function stripAnsi(s: string): string {
@@ -24,6 +25,26 @@ function renderLogo(text: string, maxWidth: number): string[] {
   return (result.array ?? result.string.split('\n'))
     .map((line) => stripAnsi(line).replace(/\s+$/g, ''))
     .filter((line) => line.length > 0)
+}
+
+/** Minecraft stone-block bevel: lighter on top face, darker underside. */
+function bevelShade(index: number, total: number): string {
+  if (total <= 1) return '#A8A8A8'
+  const t = index / (total - 1)
+  if (t < 0.33) return '#C6C6C6'
+  if (t < 0.66) return '#8B8B8B'
+  return '#555555'
+}
+
+function renderLogoWithBevel(lines: string[]) {
+  const total = lines.length
+  const width = Math.max(0, ...lines.map((l) => l.length))
+  return lines.map((line, i) => (
+    // biome-ignore lint/suspicious/noArrayIndexKey: fixed logo glyph rows
+    <Text key={`logo-row-${i}`} color={bevelShade(i, total)}>
+      {line.padEnd(width, ' ')}
+    </Text>
+  ))
 }
 
 function firstEnabledIndex(menu: SplashMenuItem[]): number {
@@ -70,14 +91,12 @@ export function SplashScreen({
   const height = rows || 24
 
   const logo = useMemo(() => renderLogo('craftty', width - 4), [width])
-  const logoWidth = Math.max(0, ...logo.map((l) => l.length))
 
   const [selectedIdx, setSelectedIdx] = useState(() => firstEnabledIndex(menu))
 
-  // Keep selection valid when menu changes (login/logout).
   useEffect(() => {
     setSelectedIdx((i) => {
-      if (menu[i] && !menu[i]!.disabled) return i
+      if (menu[i] && !menu[i]?.disabled) return i
       return firstEnabledIndex(menu)
     })
   }, [menu])
@@ -100,13 +119,11 @@ export function SplashScreen({
         return
       }
 
-      // Global quit — kept out of the menu rows, always available.
       if (input.toLowerCase() === 'q') {
         onAction('q')
         return
       }
 
-      // Hotkeys still work (LazyVim-style letter on the right).
       const hit = menu.find((m) => !m.disabled && m.key.toLowerCase() === input.toLowerCase())
       if (hit) {
         const idx = menu.findIndex((m) => m.key === hit.key)
@@ -130,11 +147,7 @@ export function SplashScreen({
       justifyContent="center"
     >
       <Box flexDirection="column" alignItems="center" marginBottom={1}>
-        {logo.map((line) => (
-          <Text key={line} color={theme.colors.secondary}>
-            {line.padEnd(logoWidth, ' ')}
-          </Text>
-        ))}
+        <Box flexDirection="column">{renderLogoWithBevel(logo)}</Box>
         <Text color={theme.colors.muted}>TUI Minecraft launcher</Text>
       </Box>
 
@@ -147,9 +160,9 @@ export function SplashScreen({
             <Box key={item.key} justifyContent="space-between">
               <Box gap={1}>
                 <Text color={active && !muted ? theme.colors.focus : theme.colors.muted}>
-                  {active && !muted ? '❯' : ' '}
+                  {active && !muted ? icons.mdChevronRight : ' '}
                 </Text>
-                <Text color={color}>{item.icon ?? '·'}</Text>
+                <Text color={color}>{item.icon ?? icons.circleOutline}</Text>
                 <Text color={color} bold={active && !muted} dimColor={muted}>
                   {item.label}
                 </Text>
@@ -164,7 +177,7 @@ export function SplashScreen({
 
       <Box marginTop={2} flexDirection="column" alignItems="center" gap={1}>
         <Text color={theme.colors.info} dimColor>
-          ⚡ {statusLine}
+          {icons.bolt} {statusLine}
         </Text>
         <Text dimColor>↑↓ select · ↵ confirm · letter shortcut · q quit</Text>
       </Box>

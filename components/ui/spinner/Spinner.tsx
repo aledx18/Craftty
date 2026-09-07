@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Text, Box } from 'ink';
-import { spinnerFrames, darkTheme } from '../_core.js';
-import type { SpinnerType, InkUITheme } from '../_core.js';
+import { Box, Text } from 'ink'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import type { InkUITheme, SpinnerType } from '../_core.js'
+import { darkTheme, spinnerFrames } from '../_core.js'
 
 export interface SpinnerProps {
   /** Text shown after the spinner frame */
-  label?: string;
+  label?: string
   /** Animation style — dots | line | arc | bounce */
-  type?: SpinnerType;
+  type?: SpinnerType
   /** Frame interval in milliseconds */
-  interval?: number;
+  interval?: number
   /** Theme override — defaults to darkTheme */
-  theme?: InkUITheme;
+  theme?: InkUITheme
 }
 
 export const Spinner: React.FC<SpinnerProps> = ({
@@ -20,20 +21,20 @@ export const Spinner: React.FC<SpinnerProps> = ({
   interval = 80,
   theme = darkTheme,
 }) => {
-  const frames = spinnerFrames[type];
-  const [frame, setFrame] = useState(0);
+  const frames = spinnerFrames[type]
+  const [frame, setFrame] = useState(0)
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setFrame((prev) => (prev + 1) % frames.length);
-    }, interval);
-    return () => clearInterval(timer);
-  }, [frames.length, interval]);
+      setFrame((prev) => (prev + 1) % frames.length)
+    }, interval)
+    return () => clearInterval(timer)
+  }, [frames.length, interval])
 
   return (
     <Box>
       <Text color={theme.colors.primary}>{frames[frame]}</Text>
       {label ? <Text> {label}</Text> : null}
     </Box>
-  );
-};
+  )
+}

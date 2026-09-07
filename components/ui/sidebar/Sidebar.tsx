@@ -1,6 +1,7 @@
 import { Box, Text } from 'ink'
 import type React from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
+import { icons } from '@/components/ui/icons.js'
 import { Select } from '@/components/ui/select/Select.js'
 import { useTheme } from '@/components/ui/theme.js'
 
@@ -100,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : theme.colors.muted
             }
           >
-            {account ? '◐' : '?'}
+            {account ? icons.user : icons.userOutline}
           </Text>
         </Box>
         <Box flexDirection="column" flexGrow={1} overflow="hidden">
@@ -114,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {account.username}
               </Text>
               <Box gap={1}>
-                <Text color={theme.colors.warning}>●</Text>
+                <Text color={theme.colors.warning}>{icons.circle}</Text>
                 <Text color={theme.colors.muted}>offline</Text>
               </Box>
             </>

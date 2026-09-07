@@ -2,6 +2,7 @@ import { Box, Text, useInput, useStdin } from 'ink'
 import type React from 'react'
 import { useState } from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
+import { icons } from '@/components/ui/icons.js'
 import { useTheme } from '@/components/ui/theme.js'
 
 export interface TextInputProps {
@@ -141,7 +142,7 @@ export const TextInput: React.FC<TextInputProps> = ({
   return (
     <Box>
       {label ? <Text color={theme.colors.muted}>{label} </Text> : null}
-      <Text color={theme.colors.border}>{'❯ '}</Text>
+      <Text color={theme.colors.border}>{`${icons.mdChevronRight} `}</Text>
       {canFocus ? (
         <FocusedInput
           value={value}

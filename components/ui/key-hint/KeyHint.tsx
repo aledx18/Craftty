@@ -21,7 +21,7 @@ export const KeyHint: React.FC<KeyHintProps> = ({ keys, theme: themeProp }) => {
   return (
     <Box gap={2}>
       {keys.map(({ key, label }) => (
-        <Box key={key} gap={1}>
+        <Box key={`${key}:${label}`} gap={1}>
           <Text bold dimColor>
             [{key}]
           </Text>

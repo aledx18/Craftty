@@ -1,6 +1,7 @@
 import { Box, Text, useInput } from 'ink'
 import React, { useState } from 'react'
 import type { InkUITheme } from '@/components/ui/_core.js'
+import { icons } from '@/components/ui/icons.js'
 import { Select } from '@/components/ui/select/index.js'
 import { TextInput } from '@/components/ui/text-input/index.js'
 import { useTheme } from '@/components/ui/theme.js'
@@ -93,7 +94,7 @@ export const AddInstanceModal: React.FC<AddInstanceModalProps> = ({
         width={56}
       >
         <Text bold color={theme.colors.primary}>
-          ⬡ New instance
+          {icons.plus} New instance
         </Text>
         <Text color={theme.colors.muted}>Name and Minecraft version</Text>
         <Text dimColor>Install runs in the background after create</Text>
@@ -108,7 +109,7 @@ export const AddInstanceModal: React.FC<AddInstanceModalProps> = ({
           paddingY={1}
         >
           <Text color={nameFocused ? theme.colors.focus : theme.colors.muted} bold={nameFocused}>
-            ■ Name {nameFocused ? '●' : ''}
+            {icons.folder} Name {nameFocused ? icons.circle : ''}
           </Text>
           <TextInput
             value={name}
@@ -132,7 +133,7 @@ export const AddInstanceModal: React.FC<AddInstanceModalProps> = ({
             color={versionFocused ? theme.colors.focus : theme.colors.muted}
             bold={versionFocused}
           >
-            ⬡ Minecraft {versionFocused ? '●' : ''}
+            {icons.cube} Minecraft {versionFocused ? icons.circle : ''}
           </Text>
           {versionsLoading ? (
             <Text dimColor>Loading versions...</Text>
