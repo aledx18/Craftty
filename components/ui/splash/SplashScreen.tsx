@@ -100,6 +100,12 @@ export function SplashScreen({
         return
       }
 
+      // Global quit — kept out of the menu rows, always available.
+      if (input.toLowerCase() === 'q') {
+        onAction('q')
+        return
+      }
+
       // Hotkeys still work (LazyVim-style letter on the right).
       const hit = menu.find((m) => !m.disabled && m.key.toLowerCase() === input.toLowerCase())
       if (hit) {
@@ -156,11 +162,11 @@ export function SplashScreen({
         })}
       </Box>
 
-      <Box marginTop={2} flexDirection="column" alignItems="center" gap={0}>
+      <Box marginTop={2} flexDirection="column" alignItems="center" gap={1}>
         <Text color={theme.colors.info} dimColor>
           ⚡ {statusLine}
         </Text>
-        <Text dimColor>↑↓ select · ↵ confirm · letter shortcut</Text>
+        <Text dimColor>↑↓ select · ↵ confirm · letter shortcut · q quit</Text>
       </Box>
     </Box>
   )

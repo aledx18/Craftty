@@ -68,21 +68,14 @@ function App() {
   const selected = instances[selectedIdx]
 
   const splashMenu: SplashMenuItem[] = useMemo(() => {
-    const items: SplashMenuItem[] = []
     if (account) {
-      items.push(
+      return [
         { key: 'i', label: 'Instances', icon: '◧' },
         { key: 'n', label: 'New instance', icon: '✦' },
         { key: 'a', label: 'Account', icon: '◐' },
-      )
-    } else {
-      items.push({ key: 'a', label: 'Sign in (offline)', icon: '◐' })
+      ]
     }
-    items.push(
-      { key: 's', label: 'Settings', icon: '⚙', disabled: true, hint: 'soon' },
-      { key: 'q', label: 'Quit', icon: '⌘' },
-    )
-    return items
+    return [{ key: 'a', label: 'Sign in (offline)', icon: '◐' }]
   }, [account])
 
   useEffect(() => {
