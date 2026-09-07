@@ -1,9 +1,10 @@
-import { Box, render, Text, useApp, useInput, useWindowSize } from 'ink'
+import { Box, render, Text, useApp, useInput } from 'ink'
 import { useEffect, useMemo, useState } from 'react'
 import { AddInstanceModal } from '@/components/ui/add-instance/index.js'
 import { AuthPanel } from '@/components/ui/auth/index.js'
 import { Confirm } from '@/components/ui/confirm/Confirm.js'
-import { InstanceCard, InstanceGrid } from '@/components/ui/instance-card/index.js'
+import { icons } from '@/components/ui/icons.js'
+import { InstanceCard, InstanceList } from '@/components/ui/instance-card/index.js'
 import { KeyHint } from '@/components/ui/key-hint/index.js'
 import type { SplashMenuItem } from '@/components/ui/splash/index.js'
 import { SplashScreen } from '@/components/ui/splash/index.js'
@@ -16,11 +17,8 @@ import { usePlayInstance } from '@/src/hooks/usePlayInstance.js'
 import { useSettings } from '@/src/hooks/useSettings.js'
 import type { InstallPhase } from '@/src/minecraft/install.js'
 import { offlinePlayerUuid } from '@/src/minecraft/offlineUuid.js'
-import { clearEphemeralInstanceStatuses } from '@/src/storage.js'
-import { registerTerminalCleanup, setupTerminal } from '@/src/terminal.js'
 
-setupTerminal('craftty')
-registerTerminalCleanup(() => clearEphemeralInstanceStatuses())
+// Terminal setup lives in src/main.ts (runs BEFORE this module loads).
 
 function phaseLabel(phase: InstallPhase): string {
   switch (phase) {
@@ -41,16 +39,23 @@ type MainFocus = 'grid' | 'add' | 'confirm'
 function App() {
   const theme = useTheme()
   const { exit } = useApp()
-  const { columns } = useWindowSize()
   const { instances, addInstance, removeInstance, updateInstance } = useInstances()
   const { account, login, logout } = useAccount()
   const { settings } = useSettings()
-  const { playInstance, playError, playRepair } = usePlayInstance({
+  const {
+    playInstance,
+    playError,
+    playRepair,
+    isPlaying,
+    isRepairing,
+    cancelRepair,
+    setPlayError,
+  } = usePlayInstance({
     account,
     settings,
     updateInstance,
   })
-  const { createInstance, cancelCreate, jobProgress, jobError } = useCreateInstance({
+  const { createInstance, cancelCreate, jobProgress, jobError, setJobError } = useCreateInstance({
     addInstance,
     removeInstance,
     updateInstance,
@@ -62,20 +67,23 @@ function App() {
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
 
-  // Full width cards (no sidebar)
-  const cols = Math.max(1, Math.floor(Math.max(32, (columns || 80) - 4) / 33))
+  const clearTransientErrors = () => {
+    setPlayError(null)
+    setJobError(null)
+  }
+
   const count = instances.length
   const selected = instances[selectedIdx]
 
   const splashMenu: SplashMenuItem[] = useMemo(() => {
     if (account) {
       return [
-        { key: 'i', label: 'Instances', icon: '◧' },
-        { key: 'n', label: 'New instance', icon: '✦' },
-        { key: 'a', label: 'Account', icon: '◐' },
+        { key: 'i', label: 'Instances', icon: icons.cubes },
+        { key: 'n', label: 'New instance', icon: icons.plus },
+        { key: 'a', label: 'Account', icon: icons.user },
       ]
     }
-    return [{ key: 'a', label: 'Sign in (offline)', icon: '◐' }]
+    return [{ key: 'a', label: 'Sign in (offline)', icon: icons.signIn }]
   }, [account])
 
   useEffect(() => {
@@ -115,6 +123,7 @@ function App() {
     }
 
     if (key.escape) {
+      clearTransientErrors()
       setScreen('splash')
       return
     }
@@ -123,47 +132,74 @@ function App() {
       return
     }
     if (input === 'a' || input === 'A') {
+      clearTransientErrors()
       setScreen('auth')
       return
     }
     if (input === 'n' || input === 'N') {
+      clearTransientErrors()
       setMainFocus('add')
       return
     }
-    if ((input === 'c' || input === 'C') && selected?.status === 'updating') {
-      cancelCreate(selected.id)
+    if (input === 'c' || input === 'C') {
+      if (selected && isRepairing(selected.id)) {
+        cancelRepair()
+        return
+      }
+      if (selected?.status === 'updating') {
+        cancelCreate(selected.id)
+        return
+      }
       return
     }
     if (count === 0) return
     if (key.return) {
-      if (selected && selected.status !== 'updating') void playInstance(selected)
+      if (!selected) return
+      if (selected.status === 'updating' || isRepairing(selected.id)) return
+      if (isPlaying(selected.id)) {
+        setPlayError(`"${selected.name}" is already running`)
+        return
+      }
+      void playInstance(selected)
       return
     }
     if ((input === 'd' || input === 'D' || key.delete || key.backspace) && selected) {
+      if (isPlaying(selected.id)) {
+        setPlayError(`Cannot delete "${selected.name}" while the game is running`)
+        return
+      }
+      if (isRepairing(selected.id)) {
+        cancelRepair()
+        // allow delete after cancel settles; user can press d again
+        setPlayError('Repair cancelled — press d again to delete')
+        return
+      }
       if (selected.status === 'updating') cancelCreate(selected.id)
       setPendingDelete(selected.id)
       setMainFocus('confirm')
       return
     }
-    if (key.leftArrow) setSelectedIdx((i) => (i - 1 + count) % count)
-    if (key.rightArrow) setSelectedIdx((i) => (i + 1) % count)
-    if (key.upArrow)
-      setSelectedIdx((i) => {
-        const next = i - cols
-        if (next < 0) {
-          const lastRowStart = Math.floor((count - 1) / cols) * cols
-          const col = i % cols
-          const candidate = lastRowStart + col
-          return candidate < count ? candidate : lastRowStart
-        }
-        return next
-      })
-    if (key.downArrow)
-      setSelectedIdx((i) => {
-        const next = i + cols
-        return next >= count ? next % cols : next
-      })
+    // List navigation (vertical). Left/right also step one item.
+    // Any move dismisses sticky footer errors (delete blocked, already running, …).
+    if (key.upArrow || key.leftArrow) {
+      clearTransientErrors()
+      setSelectedIdx((i) => (i - 1 + count) % count)
+    }
+    if (key.downArrow || key.rightArrow) {
+      clearTransientErrors()
+      setSelectedIdx((i) => (i + 1) % count)
+    }
   })
+
+  // Auto-dismiss footer errors so they don't stick forever if the user doesn't move.
+  useEffect(() => {
+    if (!playError && !jobError) return
+    const t = setTimeout(() => {
+      setPlayError(null)
+      setJobError(null)
+    }, 4000)
+    return () => clearTimeout(t)
+  }, [playError, jobError, setPlayError, setJobError])
 
   const activeProgress = jobProgress ?? playRepair
   const footerError = jobError ?? playError
@@ -218,10 +254,6 @@ function App() {
             login({ username, uuid: offlinePlayerUuid(username) })
             setScreen('splash')
           }}
-          onMicrosoftLogin={() => {
-            login({ username: 'MicrosoftUser', uuid: offlinePlayerUuid('MicrosoftUser') })
-            setScreen('splash')
-          }}
           onLogout={() => {
             logout()
             setScreen('splash')
@@ -258,12 +290,14 @@ function App() {
                       { key: 'Esc', label: 'cancel' },
                     ]
                   : [
-                      { key: '←→↑↓', label: 'navigate' },
+                      { key: '↑↓', label: 'navigate' },
                       { key: 'n', label: 'new' },
                       { key: 'd', label: 'delete' },
-                      ...(selected?.status === 'updating'
-                        ? [{ key: 'c', label: 'cancel install' }]
-                        : []),
+                      ...(selected && isRepairing(selected.id)
+                        ? [{ key: 'c', label: 'cancel repair' }]
+                        : selected?.status === 'updating'
+                          ? [{ key: 'c', label: 'cancel install' }]
+                          : []),
                       { key: '↵', label: 'play' },
                       { key: 'a', label: 'account' },
                       { key: 'Esc', label: 'home' },
@@ -272,7 +306,11 @@ function App() {
             }
           />
           <Text dimColor>
-            {mainFocus === 'add' ? '● new' : mainFocus === 'confirm' ? '● delete' : '● instances'}
+            {mainFocus === 'add'
+              ? `${icons.circle} new`
+              : mainFocus === 'confirm'
+                ? `${icons.circle} delete`
+                : `${icons.circle} instances`}
           </Text>
         </Box>
       }
@@ -309,6 +347,13 @@ function App() {
                 focus={true}
                 onConfirm={() => {
                   try {
+                    if (isPlaying(pendingDelete)) {
+                      setPlayError('Cannot delete while the game is running')
+                      setPendingDelete(null)
+                      setMainFocus('grid')
+                      return
+                    }
+                    if (isRepairing(pendingDelete)) cancelRepair()
                     if (target?.status === 'updating') cancelCreate(pendingDelete)
                     removeInstance(pendingDelete)
                     setPendingDelete(null)
@@ -346,7 +391,7 @@ function App() {
             <Text color={theme.colors.primary}>Press n to create one</Text>
           </Box>
         ) : (
-          <InstanceGrid>
+          <InstanceList>
             {instances.map((inst, idx) => {
               const isThisJob = jobProgress?.instanceId === inst.id
               const progressLabel =
@@ -368,7 +413,7 @@ function App() {
                 />
               )
             })}
-          </InstanceGrid>
+          </InstanceList>
         )}
 
         <Box flexGrow={1} />
@@ -393,7 +438,7 @@ function App() {
                   {phaseLabel(activeProgress.phase)} {activeProgress.downloaded}/
                   {activeProgress.total}
                   {activeProgress.failed > 0 ? ` · ${activeProgress.failed} failed` : ''}
-                  {jobProgress ? ' · c cancel' : ''}
+                  {jobProgress || playRepair ? ' · c cancel' : ''}
                 </Text>
               ) : footerError ? (
                 <Text color={theme.colors.error}> · {footerError.slice(0, 80)}</Text>

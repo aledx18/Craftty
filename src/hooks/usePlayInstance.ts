@@ -8,16 +8,35 @@ import { resolveJava } from '@/src/minecraft/java.js'
 import { launchInstance } from '@/src/minecraft/launch.js'
 import type { Account, Instance, Settings } from '@/src/storage.js'
 
+export interface RepairProgress extends InstallVanillaProgress {
+  instanceId: string
+  instanceName: string
+}
+
 export function usePlayInstance(opts: {
   account: Account | null
   settings: Settings
   updateInstance: (id: string, patch: Partial<Instance>) => void
 }) {
   const { account, settings, updateInstance } = opts
+  /** Live game processes launched from this craftty session (not disk status). */
   const playingRef = useRef<Set<string>>(new Set())
-  const repairingRef = useRef(false)
+  const repairAbortRef = useRef<AbortController | null>(null)
+  const repairingIdRef = useRef<string | null>(null)
+  const lastUiAt = useRef(0)
+
   const [playError, setPlayError] = useState<string | null>(null)
-  const [playRepair, setPlayRepair] = useState<InstallVanillaProgress | null>(null)
+  const [playRepair, setPlayRepair] = useState<RepairProgress | null>(null)
+
+  const isPlaying = useCallback((id: string) => playingRef.current.has(id), [])
+  const isRepairing = useCallback((id?: string) => {
+    if (!repairingIdRef.current) return false
+    return id ? repairingIdRef.current === id : true
+  }, [])
+
+  const cancelRepair = useCallback(() => {
+    repairAbortRef.current?.abort()
+  }, [])
 
   const attachGameProcess = useCallback(
     (inst: Instance, child: ChildProcess) => {
@@ -45,9 +64,16 @@ export function usePlayInstance(opts: {
         return
       }
       // Only trust in-memory playing set. Disk "playing" can be stale after craftty restart.
-      if (playingRef.current.has(inst.id)) return
-      if (repairingRef.current) {
-        setPlayError('Already repairing game files')
+      if (playingRef.current.has(inst.id)) {
+        setPlayError(`"${inst.name}" is already running`)
+        return
+      }
+      if (repairingIdRef.current) {
+        setPlayError(
+          repairingIdRef.current === inst.id
+            ? 'Repair in progress — press c to cancel'
+            : 'Already repairing another instance',
+        )
         return
       }
 
@@ -74,12 +100,25 @@ export function usePlayInstance(opts: {
         // Launch failed — most often missing/corrupt files. Repair into shared, then retry once.
       }
 
-      repairingRef.current = true
+      const ac = new AbortController()
+      repairAbortRef.current = ac
+      repairingIdRef.current = inst.id
       updateInstance(inst.id, { status: 'updating' })
       try {
         await installVanilla(ensureSharedPath(), inst.version, {
-          onProgress: setPlayRepair,
+          signal: ac.signal,
+          onProgress: (p) => {
+            const now = Date.now()
+            if (now - lastUiAt.current < 100 && p.downloaded < p.total) return
+            lastUiAt.current = now
+            setPlayRepair({
+              instanceId: inst.id,
+              instanceName: inst.name,
+              ...p,
+            })
+          },
         })
+        if (ac.signal.aborted) return
         const child = await launchInstance({
           instance: inst,
           account,
@@ -89,16 +128,32 @@ export function usePlayInstance(opts: {
         setPlayRepair(null)
         attachGameProcess(inst, child)
       } catch (e: any) {
+        if (e?.name === 'AbortError' || ac.signal.aborted) {
+          // Shared files may be partial; next play will repair again.
+          updateInstance(inst.id, { status: 'ready' })
+          setPlayRepair(null)
+          setPlayError(null)
+          return
+        }
         updateInstance(inst.id, { status: 'error' })
         setPlayRepair(null)
         const msg = e?.error ? `${e.error}: ${e.message}` : (e?.message ?? String(e))
         setPlayError(msg)
       } finally {
-        repairingRef.current = false
+        if (repairingIdRef.current === inst.id) repairingIdRef.current = null
+        if (repairAbortRef.current === ac) repairAbortRef.current = null
       }
     },
     [account, settings, updateInstance, attachGameProcess],
   )
 
-  return { playInstance, playError, playRepair }
+  return {
+    playInstance,
+    playError,
+    playRepair,
+    isPlaying,
+    isRepairing,
+    cancelRepair,
+    setPlayError,
+  }
 }
