@@ -1,0 +1,47 @@
+# Maintainer: aledx18 <https://github.com/aledx18>
+# Builds the standalone binary from git HEAD (needs Bun).
+#
+# Usage (local):
+#   cd packaging/aur/craftty-git
+#   makepkg -si
+#
+# AUR helper tip: bun is usually the package `bun-bin` on AUR.
+
+pkgname=craftty-git
+pkgver=0.1.0.r0.g0000000
+pkgrel=1
+pkgdesc='Terminal Minecraft launcher (TUI) — build from git'
+arch=('x86_64' 'aarch64')
+url='https://github.com/aledx18/Craftty'
+license=('MIT')
+depends=('glibc')
+makedepends=('git' 'bun-bin')
+provides=('craftty')
+conflicts=('craftty' 'craftty-bin')
+options=('!strip')
+source=("${pkgname}::git+${url}.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "${srcdir}/${pkgname}"
+  local ver
+  ver="$(git describe --tags --long --match 'v*' 2>/dev/null || true)"
+  if [[ -n "$ver" ]]; then
+    # v0.1.0-12-gabcd123 -> 0.1.0.r12.gabcd123
+    ver="${ver#v}"
+    printf '%s' "${ver//-/.}" | sed 's/\.\([0-9]*\)\.g/.r\1.g/'
+  else
+    printf '0.0.0.r%s.g%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+  fi
+}
+
+build() {
+  cd "${srcdir}/${pkgname}"
+  bun install --frozen-lockfile
+  bun run build
+}
+
+package() {
+  cd "${srcdir}/${pkgname}"
+  install -Dm755 dist/craftty "${pkgdir}/usr/bin/craftty"
+}

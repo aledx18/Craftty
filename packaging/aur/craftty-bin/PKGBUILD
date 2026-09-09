@@ -1,0 +1,36 @@
+# Maintainer: aledx18 <https://github.com/aledx18>
+# Prebuilt binary from GitHub Releases (no Bun needed at install time).
+#
+# Usage (local test before publishing to AUR):
+#   cd packaging/aur/craftty-bin
+#   # set pkgver + sha256sums to match a real release asset
+#   makepkg -si
+
+pkgname=craftty-bin
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Terminal Minecraft launcher (TUI) — prebuilt binary'
+arch=('x86_64' 'aarch64')
+url='https://github.com/aledx18/Craftty'
+license=('MIT')
+depends=('glibc')
+provides=('craftty')
+conflicts=('craftty' 'craftty-git')
+options=('!strip')
+
+source_x86_64=("${pkgname}-${pkgver}-x86_64::${url}/releases/download/v${pkgver}/craftty-linux-x64")
+source_aarch64=("${pkgname}-${pkgver}-aarch64::${url}/releases/download/v${pkgver}/craftty-linux-arm64")
+# Fill after publishing a release: sha256sum dist/craftty-linux-*
+sha256sums_x86_64=('SKIP')
+sha256sums_aarch64=('SKIP')
+
+package() {
+  local _bin
+  case "$CARCH" in
+    x86_64) _bin="${pkgname}-${pkgver}-x86_64" ;;
+    aarch64) _bin="${pkgname}-${pkgver}-aarch64" ;;
+    *) echo "unsupported arch: $CARCH" >&2; return 1 ;;
+  esac
+
+  install -Dm755 "${srcdir}/${_bin}" "${pkgdir}/usr/bin/craftty"
+}

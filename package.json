@@ -1,10 +1,27 @@
 {
-  "name": "mc-launcher",
+  "name": "craftty",
+  "version": "0.1.0",
+  "description": "Terminal Minecraft launcher (TUI)",
   "type": "module",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aledx18/Craftty.git"
+  },
+  "bin": {
+    "craftty": "./dist/craftty"
+  },
   "scripts": {
     "dev": "NODE_ENV=development bun run src/main.ts",
     "start": "NODE_ENV=production bun run src/main.ts",
+    "build": "bun run scripts/build-binary.ts",
+    "build:linux-x64": "CRAFTTY_OUT=craftty-linux-x64 CRAFTTY_TARGET=bun-linux-x64 bun run scripts/build-binary.ts",
+    "build:linux-arm64": "CRAFTTY_OUT=craftty-linux-arm64 CRAFTTY_TARGET=bun-linux-arm64 bun run scripts/build-binary.ts",
+    "build:darwin-arm64": "CRAFTTY_OUT=craftty-darwin-arm64 CRAFTTY_TARGET=bun-darwin-arm64 bun run scripts/build-binary.ts",
+    "build:darwin-x64": "CRAFTTY_OUT=craftty-darwin-x64 CRAFTTY_TARGET=bun-darwin-x64 bun run scripts/build-binary.ts",
+    "release": "bun run scripts/release.ts",
+    "release:dry": "bun run scripts/release.ts --dry-run",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",
