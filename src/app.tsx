@@ -16,7 +16,7 @@ import { useInstances } from '@/src/hooks/useInstances.js'
 import { usePlayInstance } from '@/src/hooks/usePlayInstance.js'
 import { useSettings } from '@/src/hooks/useSettings.js'
 import type { InstallPhase } from '@/src/minecraft/install.js'
-import { offlinePlayerUuid } from '@/src/minecraft/offlineUuid.js'
+import { createOfflineAccount } from '@/src/storage.js'
 
 // Terminal setup lives in src/main.ts (runs BEFORE this module loads).
 
@@ -251,7 +251,7 @@ function App() {
           isLoggedIn={!!account}
           focus={true}
           onLogin={(username) => {
-            login({ username, uuid: offlinePlayerUuid(username) })
+            login(createOfflineAccount(username))
             setScreen('splash')
           }}
           onLogout={() => {

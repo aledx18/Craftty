@@ -20,6 +20,17 @@ export function resolveResourcePath(instance: Instance, shared = getSharedPath()
   return shared
 }
 
+/** Map account variant → @xmcl/core launch auth fields. */
+export function launchAuthFromAccount(account: Account): {
+  accessToken: string
+  userType: 'mojang' | 'msa'
+} {
+  if (account.type === 'offline') {
+    return { accessToken: '0', userType: 'mojang' }
+  }
+  return { accessToken: account.accessToken, userType: 'msa' }
+}
+
 export async function launchInstance(opts: {
   instance: Instance
   account: Account
@@ -28,6 +39,7 @@ export async function launchInstance(opts: {
 }): Promise<ChildProcess> {
   const { instance, account, settings, javaPath } = opts
   const resourcePath = resolveResourcePath(instance)
+  const auth = launchAuthFromAccount(account)
 
   const child = await launch({
     gamePath: instance.folder,
@@ -40,8 +52,8 @@ export async function launchInstance(opts: {
       name: account.username,
       id: account.uuid,
     },
-    accessToken: '0',
-    userType: 'mojang',
+    accessToken: auth.accessToken,
+    userType: auth.userType,
     launcherName: 'craftty',
     launcherBrand: 'craftty',
     extraExecOption: {

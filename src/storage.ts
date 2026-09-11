@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { offlinePlayerUuid } from '@/src/minecraft/offlineUuid.js'
 
 const APP_NAME = 'craftty'
 
@@ -89,10 +90,30 @@ export interface Instance {
   createdAt: string
 }
 
-export interface Account {
+/**
+ * Discriminated account model.
+ * Offline: UUID is always derived from username (vanilla OfflinePlayer rule).
+ * Microsoft: UUID + tokens come from Xbox/Minecraft services — never recompute UUID.
+ *
+ * Legacy on disk: `{ username, uuid }` without `type` → migrated to offline on load.
+ */
+export type OfflineAccount = {
+  type: 'offline'
   username: string
   uuid: string
 }
+
+export type MicrosoftAccount = {
+  type: 'microsoft'
+  username: string
+  uuid: string
+  accessToken: string
+  refreshToken: string
+  /** Epoch ms when accessToken should be considered expired. */
+  expiresAt: number
+}
+
+export type Account = OfflineAccount | MicrosoftAccount
 
 export interface Settings {
   memoryMinMB: number
@@ -104,10 +125,71 @@ const DEFAULT_SETTINGS: Settings = {
   memoryMaxMB: 4096,
 }
 
+// ---------- Account normalize / factories (pure) ----------
+
+function isNonEmptyString(v: unknown): v is string {
+  return typeof v === 'string' && v.trim().length > 0
+}
+
+/**
+ * Accepts current or legacy account.json shapes.
+ * Returns null if the payload is unusable.
+ * For offline (and legacy), UUID is always recomputed from username.
+ * For microsoft, all token fields are required — incomplete blobs are rejected.
+ */
+export function normalizeAccount(raw: unknown): Account | null {
+  if (raw == null || typeof raw !== 'object') return null
+  const o = raw as Record<string, unknown>
+  if (!isNonEmptyString(o.username)) return null
+  const username = o.username.trim()
+
+  if (o.type === 'microsoft') {
+    if (!isNonEmptyString(o.uuid)) return null
+    if (!isNonEmptyString(o.accessToken)) return null
+    if (!isNonEmptyString(o.refreshToken)) return null
+    if (typeof o.expiresAt !== 'number' || !Number.isFinite(o.expiresAt)) return null
+    return {
+      type: 'microsoft',
+      username,
+      uuid: o.uuid.trim(),
+      accessToken: o.accessToken,
+      refreshToken: o.refreshToken,
+      expiresAt: o.expiresAt,
+    }
+  }
+
+  // offline | legacy (no type) → offline. Unknown type is rejected.
+  if (o.type != null && o.type !== 'offline') return null
+  return createOfflineAccount(username)
+}
+
+export function createOfflineAccount(username: string): OfflineAccount {
+  const name = username.trim()
+  return {
+    type: 'offline',
+    username: name,
+    uuid: offlinePlayerUuid(name),
+  }
+}
+
 // ---------- Public API: account ----------
 
 export function loadAccount(): Account | null {
-  return readJSON<Account | null>('account.json', null)
+  const raw = readJSON<unknown>('account.json', null)
+  if (raw == null) return null
+
+  const normalized = normalizeAccount(raw)
+  if (!normalized) return null
+
+  // Persist migration (legacy → typed offline, or fixed offline uuid).
+  if (JSON.stringify(raw) !== JSON.stringify(normalized)) {
+    try {
+      saveAccount(normalized)
+    } catch {
+      // In-memory normalized account is still returned.
+    }
+  }
+  return normalized
 }
 
 export function saveAccount(account: Account): void {
